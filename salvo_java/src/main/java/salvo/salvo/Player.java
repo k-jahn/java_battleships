@@ -1,6 +1,9 @@
 package salvo.salvo;
 
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
 
 
 @Entity
@@ -12,7 +15,6 @@ public class Player {
 
     private String userName;
 
-    private String lastName;
 
     public Player() { }
 
@@ -20,11 +22,11 @@ public class Player {
         userName = user;
     }
 
-    public String getFirstName() {
+    public String getUserName() {
         return userName;
     }
 
-    public void setFirstName(String userName) {
+    public void setUserName(String userName) {
         this.userName = userName;
     }
 
