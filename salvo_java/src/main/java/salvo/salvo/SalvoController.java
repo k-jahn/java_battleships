@@ -27,7 +27,7 @@ public class SalvoController {
     private Map<String,Object>createGameMap(Game game) {
         Map<String,Object> gameMap = new HashMap<>();
         gameMap.put("id",game.getId());
-        gameMap.put("creationNate", game.getCreationDate());
+        gameMap.put("creationDate", game.getCreationDate());
 
         List<Map<String,Object>> gamePlayerMapList = game.getGamePlayers()
                 .stream()
