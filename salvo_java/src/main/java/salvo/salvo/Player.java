@@ -1,29 +1,40 @@
 package salvo.salvo;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
+import java.util.List;
 
 
 @Entity
 public class Player {
 
+    public Player() { }
+
     @Id
     @GeneratedValue(strategy=GenerationType.AUTO)
     private long id;
 
+
+    @OneToMany(mappedBy = "game", fetch=FetchType.EAGER)
+    private List<GamePlayer> gamePlayers;
+
+
+    public void setId(long id) {
+
+        this.id = id;
+    }
+
     private String userName;
 
-
-    public Player() { }
-
     public Player(String user) {
-        userName = user;
+        this.userName = user;
+    }
+
+    public long getId() {
+        return id;
     }
 
     public String getUserName() {
-        return userName;
+        return this.userName;
     }
 
     public void setUserName(String userName) {
