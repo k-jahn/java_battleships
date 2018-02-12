@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 
 @SpringBootApplication
@@ -19,7 +20,11 @@ public class SalvoApplication {
     }
 
     @Bean
-    public CommandLineRunner initData(PlayerRepository playerRepository, GameRepository gameRepository, GamePlayerRepository gamePlayerRepository) {
+    public CommandLineRunner initData(PlayerRepository playerRepository,
+                                      GameRepository gameRepository,
+                                      GamePlayerRepository gamePlayerRepository,
+                                      ShipRepository shipRepository
+    ) {
         return (args) -> {
             // sample names
             String[] sampleNames = {"c.obrian@ctu.gov",
@@ -45,37 +50,87 @@ public class SalvoApplication {
             for (int i = 0; i < 20; i++) {
                 sampleGames.add(
                         new Game(Date.from(
-                                now.toInstant().minusSeconds((long) (Math.random()*48*3600))
+                                now.toInstant()
+                                        .minusSeconds((int) (3600.0 * 48.0 * Math.random()))
                         ))
                 );
             }
 
             // sample gamePlayers
-            List<GamePlayer> sampleGamePlayers =  sampleGames.stream()
+            List<GamePlayer> sampleGamePlayers = sampleGames.stream()
                     .map(game -> {
-                        Player player = samplePlayers.get((int) (Math.random() * samplePlayers.size()));
-                        Date joinDate = Date.from(
-                                game.getCreationDate().toInstant().minusSeconds((int) (Math.random() * 300))
-                            );
-                        return new GamePlayer(player,game,joinDate);
-                        }
-            ).collect(Collectors.toList());
-            List<GamePlayer> sampleGamePlayers2 =  sampleGames.stream()
-                    .filter(x-> Math.random() > 0.5)
+                                Player player = samplePlayers.get((int) (Math.random() * samplePlayers.size()));
+                                Date joinDate = Date.from(
+                                        game.getCreationDate().toInstant().minusSeconds((int) (Math.random() * 300))
+                                );
+                                return new GamePlayer(player, game, joinDate);
+                            }
+                    ).collect(Collectors.toList());
+            List<GamePlayer> sampleGamePlayers2 = sampleGames.stream()
+                    .filter(x -> Math.random() > 0.6)
                     .map(game -> {
-                        Player player = samplePlayers.get((int) (Math.random() * samplePlayers.size()));
-                        Date joinDate = Date.from(
-                                game.getCreationDate().toInstant().minusSeconds((int) (Math.random() * 300))
-                            );
-                        return new GamePlayer(player,game,joinDate);
+                                Player player = samplePlayers.get((int) (Math.random() * samplePlayers.size()));
+                                Date joinDate = Date.from(
+                                        game.getCreationDate().toInstant().minusSeconds((int) (Math.random() * 300))
+                                );
+                                return new GamePlayer(player, game, joinDate);
+                            }
+                    ).collect(Collectors.toList());
+            sampleGamePlayers.addAll(sampleGamePlayers2);
+
+//             sample Ships
+            List<Ship> sampleShips = new ArrayList<>();
+
+            sampleShips.addAll(sampleGamePlayers.stream()
+                    .map(gamePlayer -> {
+                        List<Ship> gamePlayerShips = new ArrayList<>();
+                        for (int i = 0; i < 6; i++) {
+                            Ship ship = new Ship();
+                            ship.setShipType(ShipType.values()[ThreadLocalRandom.current().nextInt(0, ShipType.values().length)]);
+                            int len;
+                            int o = ThreadLocalRandom.current().nextInt(0,2);
+                            switch (ship.getShipType()) {
+                                case carrier:
+                                    len = 5;
+                                    break;
+                                case battleship:
+                                    len = 4;
+                                    break;
+                                case cruiser:
+                                case submarine:
+                                    len = 3;
+                                    break;
+                                case destroyer:
+                                    len = 2;
+                            }
+
+
+                            ship.addLocation("A5");
+                            gamePlayer.addShip(ship);
+                            gamePlayerShips.add(ship);
                         }
-            ).collect(Collectors.toList());
-            System.out.println(sampleGamePlayers2.size());
+                        return gamePlayerShips;
+                    }).flatMap(List::stream)
+                    .collect(Collectors.toList())
+            );
+
+
             // save to db
-            samplePlayers.forEach(player -> {playerRepository.save(player);});
-            sampleGames.forEach(game -> {gameRepository.save(game);});
-            sampleGamePlayers.forEach(gamePlayer -> {gamePlayerRepository.save(gamePlayer);});
-            sampleGamePlayers2.forEach(gamePlayer -> {gamePlayerRepository.save(gamePlayer);});
+            samplePlayers.forEach(player -> {
+                playerRepository.save(player);
+            });
+            sampleGames.forEach(game -> {
+                gameRepository.save(game);
+            });
+            sampleGamePlayers.forEach(gamePlayer -> {
+                gamePlayerRepository.save(gamePlayer);
+            });
+
+
+//            shipRepository.save(new Ship());
+            sampleShips.forEach(ship -> {
+                shipRepository.save(ship);
+            });
 
         };
     }
