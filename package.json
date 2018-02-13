@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "sass": "node-sass --watch /home/konrad/Ubiqum/mod4_konrad/salvo_java/src/main/resources/static/web/scss:/home/konrad/Ubiqum/mod4_konrad/salvo_java/src/main/resources/static/web/css"
   },
   "repository": {
     "type": "git",
@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/k-jahn/mod4_konrad#readme",
   "dependencies": {
+    "node-sass": "^4.7.2",
     "sass": "^1.0.0-beta.5.2"
   }
 }

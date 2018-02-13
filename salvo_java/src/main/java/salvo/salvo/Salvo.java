@@ -1,37 +1,39 @@
 package salvo.salvo;
 
+
 import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
 
-
 @Entity
-public class Ship {
+public class Salvo {
+
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long id;
 
+    private int turn;
+
+    @ElementCollection
+    @Column(name="locations")
+    private List<String> locations = new ArrayList<>();
+
+
     @ManyToOne(fetch=FetchType.EAGER)
     @JoinColumn(name="gamePlayer")
     private GamePlayer gamePlayer;
-
-    private ShipType shipType;
-
-    public long getId() {
-        return id;
-    }
 
     public void setId(long id) {
         this.id = id;
     }
 
-    public ShipType getShipType() {
-        return shipType;
+    public int getTurn() {
+        return turn;
     }
 
-    public void setShipType(ShipType shipType) {
-        this.shipType = shipType;
+    public void setTurn(int turn) {
+        this.turn = turn;
     }
 
     public List<String> getLocations() {
@@ -42,8 +44,11 @@ public class Ship {
         this.locations = locations;
     }
 
-    public GamePlayer getGamePlayer() {
+    public long getId() {
+        return id;
+    }
 
+    public GamePlayer getGamePlayer() {
         return gamePlayer;
     }
 
@@ -51,8 +56,8 @@ public class Ship {
         this.gamePlayer = gamePlayer;
     }
 
+    public void addLocation(String location) {
+        this.locations.add(location);
 
-    @ElementCollection
-    @Column(name="locations")
-    private List<String> locations = new ArrayList<>();
+    }
 }

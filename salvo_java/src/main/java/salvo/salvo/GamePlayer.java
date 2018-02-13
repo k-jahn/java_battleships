@@ -41,6 +41,26 @@ public class GamePlayer {
     @OneToMany(mappedBy = "gamePlayer")
     private List<Ship> ships = new ArrayList<>();
 
+    @OneToMany(mappedBy = "gamePlayer")
+    private List<Salvo> salvos = new ArrayList<>();
+
+    public void setShips(List<Ship> ships) {
+        this.ships = ships;
+    }
+
+    public List<Salvo> getSalvos() {
+        return salvos;
+    }
+
+    public void setSalvos(List<Salvo> salvos) {
+        salvos = salvos;
+    }
+
+    public void addSalvo(Salvo salvo) {
+        salvo.setGamePlayer(this);
+        this.salvos.add(salvo);
+    }
+
     private Date joinDate;
 
     public Date getJoinDate() {

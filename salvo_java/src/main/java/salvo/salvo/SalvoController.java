@@ -67,6 +67,8 @@ public class SalvoController {
     private Map<String,Object> createGameViewMap(GamePlayer activeGamePlayer){
         Map<String,Object> gameViewMap = new HashMap<>();
         Game game = activeGamePlayer.getGame();
+
+        gameViewMap.put("activePlayer",activeGamePlayer.getPlayer().getId());
         gameViewMap.put("id",game.getId());
         gameViewMap.put("created",game.getCreationDate());
         gameViewMap.put("gamePlayers:", game.getGamePlayers()
@@ -77,6 +79,11 @@ public class SalvoController {
                 .stream()
                 .map(ship -> createShipMap(ship))
                 .collect(Collectors.toList()));
+        gameViewMap.put("salvos", activeGamePlayer.getSalvos()
+                .stream()
+                .map(salvo -> createSalvoMap(salvo))
+                .collect(Collectors.toList()));
+
         return gameViewMap;
     }
     private Map<String, Object> createShipMap(Ship ship) {
@@ -84,6 +91,13 @@ public class SalvoController {
         shipMap.put("type", ship.getShipType());
         shipMap.put( "locations", ship.getLocations());
         return shipMap;
+    }
+
+    private Map<String, Object> createSalvoMap(Salvo salvo) {
+        Map<String,Object> salvoMap = new HashMap<>();
+        salvoMap.put("turn", salvo.getTurn());
+        salvoMap.put("locations", salvo.getLocations());
+        return salvoMap;
     }
 
 

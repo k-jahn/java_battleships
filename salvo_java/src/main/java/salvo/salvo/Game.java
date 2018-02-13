@@ -42,5 +42,8 @@ public class Game {
     }
 
 
+    public void setGamePlayers(List<GamePlayer> gamePlayers) {
+        this.gamePlayers = gamePlayers;
+    }
 }
 
