@@ -24,7 +24,8 @@ public class SalvoApplication {
                                       GameRepository gameRepository,
                                       GamePlayerRepository gamePlayerRepository,
                                       ShipRepository shipRepository,
-                                      SalvoRepository salvoRepository
+                                      SalvoRepository salvoRepository,
+                                      ScoreRepository scoreRepository
     ) {
         return (args) -> {
             // sample names
@@ -36,7 +37,13 @@ public class SalvoApplication {
                     "konrad.zuse@huenfeld.de",
                     "d.palmer@whitehouse.gov",
                     "t.almeida@ctu.gov",
-                    "j.bauer@ctu.gov"
+                    "j.bauer@ctu.gov",
+                    "r.sanchez.c288@citadel.or",
+                    "morty_s@gmail.com",
+                    "p.fry@planet-express.com",
+                    "leela@planet-express.com",
+                    "h.farnsworth@planet-express.com",
+                    "bender@kissmy-sma.com",
             };
             // sample players
             List<Player> samplePlayers = Arrays.stream(sampleNames)
@@ -48,7 +55,7 @@ public class SalvoApplication {
             Date now = new Date();
 
             List<Game> sampleGames = new ArrayList<>();
-            for (int i = 0; i < 20; i++) {
+            for (int i = 0; i < 100; i++) {
                 sampleGames.add(
                         new Game(Date.from(
                                 now.toInstant()
@@ -60,9 +67,20 @@ public class SalvoApplication {
             // sample gamePlayers
             List<GamePlayer> sampleGamePlayers = sampleGames.stream()
                     .map(game -> {
-                                List<GamePlayer> gamePlayers = new ArrayList<>();
-                                for (int i = 0; i < ThreadLocalRandom.current().nextInt(1, 3); i++) {
-                                    Player player = samplePlayers.get((int) (Math.random() * samplePlayers.size()));
+
+
+                        List<GamePlayer> gamePlayers = new ArrayList<>();
+                                int numberOfPlayers = 1 + (ThreadLocalRandom.current().nextFloat() < 0.8 ? 1 : 0);
+                                List<Player> excludedPlayers = new ArrayList<>();
+
+                        for (int i = 0; i < numberOfPlayers; i++) {
+                                    Boolean excludeFlag = true;
+                                    Player player = null;
+                                    while (excludeFlag) {
+                                        player = samplePlayers.get((int) (Math.random() * samplePlayers.size()));
+                                        excludeFlag = excludedPlayers.contains(player);
+                                        excludedPlayers.add(player);
+                                    }
                                     Date joinDate = Date.from(
                                             game.getCreationDate().toInstant().minusSeconds((int) (Math.random() * 300))
                                     );
@@ -70,7 +88,8 @@ public class SalvoApplication {
                                 }
 
                                 game.setGamePlayers(gamePlayers);
-                                return gamePlayers;
+
+                        return gamePlayers;
                             }
                     ).flatMap(List::stream).collect(Collectors.toList());
 
@@ -119,13 +138,42 @@ public class SalvoApplication {
                 ;
             });
 
+
+            //sample Scores
+            List<Score> sampleScores = sampleGames.stream()
+                    .filter(game -> game.getGamePlayers().size() > 1)
+                    .filter(game -> ThreadLocalRandom.current().nextFloat() < 0.7)
+                    .map(game -> {
+                        List<Score> scores = new ArrayList<>();
+                        double pointsScored = ((float) ThreadLocalRandom.current().nextInt(0, 3)) / 2.0;
+                        for (GamePlayer gamePlayer : game.getGamePlayers()) {
+                            Score score = new Score();
+                            score.setFinishDate(
+                                    Date.from(gamePlayer.getJoinDate()
+                                            .toInstant()
+                                            .plusSeconds(
+                                                    ThreadLocalRandom.current().nextInt(60, 600)
+                                            ))
+                            );
+                            score.setScore(
+                                    pointsScored
+                            );
+                            pointsScored = 1 - pointsScored;
+                            gamePlayer.getGame().addScore(score);
+                            gamePlayer.getPlayer().addScore(score);
+                            scores.add(score);
+                        }
+                        return scores;
+                    }).flatMap(List::stream)
+                    .collect(Collectors.toList());
+
             // save to db
             samplePlayers.forEach(player -> playerRepository.save(player));
             sampleGames.forEach(game -> gameRepository.save(game));
             sampleGamePlayers.forEach(gamePlayer -> gamePlayerRepository.save(gamePlayer));
             sampleShips.forEach(ship -> shipRepository.save(ship));
             sampleSalvoes.forEach(salvo -> salvoRepository.save(salvo));
-
+            sampleScores.forEach(score -> scoreRepository.save(score));
         };
     }
 

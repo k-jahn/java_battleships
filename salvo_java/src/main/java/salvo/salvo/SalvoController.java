@@ -22,20 +22,23 @@ public class SalvoController {
     @Autowired
     private GamePlayerRepository gamePlayerRepository;
 
+    @Autowired
+    private PlayerRepository playerRepository;
+
     @RequestMapping("/games")
     public List<Map<String, Object>> getAllGameIds() {
         return gameRepository.findAll().stream().map(game -> createGameMap(game)).collect(toList());
     }
-
-    ;
-
 
     @RequestMapping("/game_view/{gamePlayerId}")
     public Map<String, Object> getGameView(@PathVariable Long gamePlayerId) {
         return createGameViewMap(gamePlayerRepository.findGamePlayerById(gamePlayerId));
     }
 
-    ;
+    @RequestMapping("/standings")
+    public List<Map<String, Object>> getLeaderBoard() {
+        return createStandingsMap(playerRepository.findAll());
+    }
 
 
     // private output formatting methods\
@@ -58,8 +61,18 @@ public class SalvoController {
         Map<String, Object> gamePlayerMap = new HashMap<>();
         gamePlayerMap.put("id", gamePlayer.getId());
 
-        Map<String, Object> playerMap = createPlayerMap(gamePlayer.getPlayer());
-        gamePlayerMap.put("player", playerMap);
+        gamePlayerMap.put(
+                "player",
+                createPlayerMap(gamePlayer.getPlayer())
+        );
+        Score score = gamePlayer.getPlayer().getScore(gamePlayer.getGame());
+        if (score != null) {
+            gamePlayerMap.put(
+                    "score",
+                    createScoreMap(score)
+            );
+        }
+
 
         return gamePlayerMap;
     }
@@ -71,6 +84,14 @@ public class SalvoController {
         return playerMap;
     }
 
+    private Map<String, Object> createScoreMap(Score score) {
+        Map<String, Object> scoreMap = new HashMap<>();
+        scoreMap.put("score", score.getScore());
+        scoreMap.put("finishDate", score.getFinishDate());
+        return scoreMap;
+    }
+
+
     private Map<String, Object> createGameViewMap(GamePlayer activeGamePlayer) {
         Map<String, Object> gameViewMap = new HashMap<>();
         Game game = activeGamePlayer.getGame();
@@ -78,7 +99,7 @@ public class SalvoController {
         gameViewMap.put("player", createGamePlayerMap(activeGamePlayer));
         gameViewMap.put("id", game.getId());
         gameViewMap.put("created", game.getCreationDate());
-        if (game.getGamePlayers().size()>1) {
+        if (game.getGamePlayers().size() > 1) {
             gameViewMap.put("opponent", game.getGamePlayers()
                     .stream()
                     .filter(gamePlayer -> gamePlayer.getId() != activeGamePlayer.getId())
@@ -110,29 +131,37 @@ public class SalvoController {
         return salvoMap;
     }
 
-    private Map<String,Map<String,List<String>>> createGameSalvoMap(Game game) {
-        Map<String,Map<String,List<String>>> gameSalvoMap= new HashMap<>();
-//        List<Salvo> gameSalvoList = game.getGamePlayers().stream().map(gamePlayer -> gamePlayer.getSalvos())
-//                .flatMap(List::stream)
-//                .collect(Collectors.toList());
-//        for(Salvo salvo : gameSalvoList) {
-//            String turn =  String.valueOf(salvo.getTurn());
-//            if (gameSalvoMap.get(turn) == null) {
-//                gameSalvoMap.put(turn,new HashMap<>());
-//            }
-//            gameSalvoMap.get(turn).put(
-//                    String.valueOf(salvo.getGamePlayer().getId()),
-//                    salvo.getLocations()
-//            );
-//        }
-        for(GamePlayer gamePlayer:game.getGamePlayers()) {
-            gameSalvoMap.put(String.valueOf(gamePlayer.getId()),new HashMap<>());
-            for(Salvo salvo : gamePlayer.getSalvos()) {
+    private Map<String, Map<String, List<String>>> createGameSalvoMap(Game game) {
+        Map<String, Map<String, List<String>>> gameSalvoMap = new HashMap<>();
+        for (GamePlayer gamePlayer : game.getGamePlayers()) {
+            gameSalvoMap.put(String.valueOf(gamePlayer.getId()), new HashMap<>());
+            for (Salvo salvo : gamePlayer.getSalvos()) {
                 gameSalvoMap.get(String.valueOf(gamePlayer.getId()))
-                        .put(String.valueOf(salvo.getTurn()),salvo.getLocations());
+                        .put(String.valueOf(salvo.getTurn()), salvo.getLocations());
             }
         }
         return gameSalvoMap;
+    }
+
+    private List<Map<String, Object>> createStandingsMap(List<Player> players) {
+        List<Map<String, Object>> standings = new ArrayList<>();
+        for (Player player : players) {
+
+            Map<String, Object> playerMap = new HashMap<String, Object>();
+
+            playerMap.put("id", player.getId());
+            playerMap.put("email", player.getUserName());
+            playerMap.put("score", player.getTotalScore());
+            playerMap.put("wins", player.getTotalWins());
+            playerMap.put("ties", player.getTotalTies());
+            playerMap.put("losses", player.getTotalLosses());
+
+
+            standings.add(playerMap);
+
+        }
+
+        return standings;
     }
 
 }
