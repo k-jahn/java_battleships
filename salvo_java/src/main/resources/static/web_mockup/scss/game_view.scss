@@ -4,28 +4,55 @@ body {
   font-family: sans-serif;
 }
 
-.game {
+.board-container {
+  display: flex;
+  justify-content: space-around;
+  text-align: center;
+}
+
+
+.board {
+  text-align: center;
   display: flex;
   flex-direction: column;
   margin: 0;
   padding: 0;
   box-sizing: border-box;
   display: block; 
-    .board_row {
+    .board-row {
       display: flex;
       flex-direction: row;
       width: 100%;
       height: $height;
-      .board_cell {
+      .board-cell {
+        font-size: $height*0.6;
+        line-height: $height;
+        position: relative;
         box-sizing: border-box;
         display: inline-block;
         border-bottom: 2px solid black;
         border-right: 2px solid black;
         width: $height;
+        &.ship {
+          background-color: blue;
+        }
+        .overlay {
+          position: absolute;
+          background-color: rgba(red,0.5);
+          display: none;
+          top: 0;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          text-align: right;
+          font-size: 0.4*$height;
+          line-height: 1em;
+        }
+        .overlay.hit {
+          display: block;
+        }
       }
-      .board_cell.ship {
-        background-color: blue;
-      }
+      
 
     }
 }

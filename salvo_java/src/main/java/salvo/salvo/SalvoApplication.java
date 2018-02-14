@@ -61,7 +61,7 @@ public class SalvoApplication {
             List<GamePlayer> sampleGamePlayers = sampleGames.stream()
                     .map(game -> {
                                 List<GamePlayer> gamePlayers = new ArrayList<>();
-                                for (int i = 0; i < ThreadLocalRandom.current().nextInt(1,3); i++) {
+                                for (int i = 0; i < ThreadLocalRandom.current().nextInt(1, 3); i++) {
                                     Player player = samplePlayers.get((int) (Math.random() * samplePlayers.size()));
                                     Date joinDate = Date.from(
                                             game.getCreationDate().toInstant().minusSeconds((int) (Math.random() * 300))
@@ -90,18 +90,26 @@ public class SalvoApplication {
             // sample salvos
             List<Salvo> sampleSalvoes = new ArrayList<>();
             sampleGames.forEach(game -> {
-                if (game.getGamePlayers().size()==1) {return;}
+                if (game.getGamePlayers().size() == 1) {
+                    return;
+                }
                 int turns = ThreadLocalRandom.current().nextInt(0, 20);
                 for (GamePlayer gamePlayer : game.getGamePlayers()) {
+                    List<String> previousSalvos = new ArrayList<>();
                     for (int turn = 1; turn <= turns; turn++) {
                         Salvo salvo = new Salvo();
                         salvo.setTurn(turn);
                         for (int j = 0; j < 2; j++) {
-                            salvo.addLocation(
-                                    Character.toString((char)(ThreadLocalRandom.current().nextInt(1, 11) + 64))
-                                            +
-                                            String.valueOf(ThreadLocalRandom.current().nextInt(1, 11))
-                            );
+                            String loc = "";
+                            Boolean containsFlag = true;
+                            while (containsFlag) {
+                                loc = Character.toString((char) (ThreadLocalRandom.current().nextInt(1, 11) + 64))
+                                        +
+                                        String.valueOf(ThreadLocalRandom.current().nextInt(1, 11));
+                                containsFlag = previousSalvos.contains(loc);
+                            }
+                            previousSalvos.add(loc);
+                            salvo.addLocation(loc);
                         }
                         gamePlayer.addSalvo(salvo);
                         sampleSalvoes.add(salvo);
