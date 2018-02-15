@@ -14,7 +14,6 @@ $(() => {
           }
         })
         if (game.gamePlayers.every(gp => gp.hasOwnProperty('score'))) {
-          console.log(game.gamePlayers.reduce((a, gp) => a + gp.score.score, 0),game)
           if (game.gamePlayers.reduce((a,gp)=>a+gp.score.score,0)!=1) throw new Error("bad server data")
           let winner;
           switch(+game.gamePlayers[0].score.score) {
@@ -22,7 +21,6 @@ $(() => {
             case 0.5: winner = null; break;
             case 1: winner = game.gamePlayers[0].player.email; break;
           }
-          console.log(winner)
           li.append($('<br>'))
             .append( winner ? `Winner: ${winner}` : `Tie!`)
         }

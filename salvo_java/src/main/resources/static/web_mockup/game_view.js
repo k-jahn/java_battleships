@@ -1,3 +1,5 @@
+const crossSVG = '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="16" viewBox="0 0 12 16"><path fill-rule="evenodd" d="M7.48 8l3.75 3.75-1.48 1.48L6 9.48l-3.75 3.75-1.48-1.48L4.52 8 .77 4.25l1.48-1.48L6 6.52l3.75-3.75 1.48 1.48z"/></svg>'
+const cellSize = 50;
 
 
 function drawBoard(id) {
@@ -8,8 +10,8 @@ function drawBoard(id) {
     for (let c of ' ABCDEFGHIJ'.split('')) {
       cell = $('<div>', { class: 'board-cell' })
         .append(
-          $('<div>', { class: 'overlay overlay-hit' }),
-          // $('<div>', { class: 'overlay overlay-water' })
+          $('<div>', { class: 'overlay overlay-hit', html: crossSVG }),
+          $('<div>', { class: 'overlay-mouse' })
         )
       if (j && c != ' ') cell.attr('id', `board-${id}-${c + j}`)
       else if (j == 0) cell.html(c)
@@ -19,19 +21,29 @@ function drawBoard(id) {
     rows.push(row)
   }
   $('#board-' + id).append(rows)
-  
+
 }
 function drawShips(ships) {
   for (let ship of ships) {
     for (let loc of ship.locations) {
-      $(`#board-player-${loc}`).addClass('ship')
+      $(`#board-player-${loc}`).addClass('board-cell-ship')
     }
-    // $(board).append($('<div>',{class:'ship',}))
+    let shipLoc = [ship.locations[0].charCodeAt(0) - 64, +ship.locations[0].split('')[1]]
+    let shipSize = [1 + ship.locations[ship.locations.length - 1].charCodeAt(0) - 64 - shipLoc[0],
+    1 + +ship.locations[ship.locations.length - 1].split('')[1] - shipLoc[1]]
+    console.log(ship, shipLoc, shipSize)
+    $('#board-player').append(
+      $('<div>',
+        {
+          class: 'overlay-ship',
+          style: `transform: translate(${shipLoc[0] * cellSize+6}px, ${shipLoc[1] * cellSize+6}px); height: ${shipSize[1] * cellSize - 2 -12}px; width: ${ shipSize[0] * cellSize - 2 -12}px`
+        }).append('<div>')
+    )
   }
 }
 
 
-function drawSalvos(salvos,role) {
+function drawSalvos(salvos, role) {
   for (let turn in salvos) {
     for (let loc of salvos[turn]) {
       $(`#board-${role}-${loc} .overlay`).addClass('hit')
@@ -44,23 +56,23 @@ function drawSalvos(salvos,role) {
 function getGamePlayer(id) {
   $.getJSON(`../api/game_view/${id}`, (d) => {
     console.log(d)
-    $('h1').html(`View of game ${id}`)
+    $('h1').html(`game_view ${id}`)
     $('.info').append([
       $('<p>', { html: `created: <em>${new Date(d.created).toLocaleString()}</em>` }),
     ])
-    
+
     // draw
-    
-    for (let role of d.hasOwnProperty('opponent') ? ['player', 'opponent']:['player']) {
+
+    for (let role of d.hasOwnProperty('opponent') ? ['player', 'opponent'] : ['player']) {
       $(`#title-${role}`).html(`${role} - ${d[role].player.email}`)
-       drawBoard(role)
-       drawSalvos(d.salvoes[d[role].id], (role.localeCompare('player') ? 'opponent' : 'player'))
-      }
-    
+      drawBoard(role)
+      drawSalvos(d.salvoes[d[role].id], (role.localeCompare('player') ? 'opponent' : 'player'))
+    }
+
     // draw ships
     drawShips(d.ships)
-    
-    
+
+
     // draw salvoes
 
   }).fail(() => $('h1').html(`gamePlayer ${id} not found`))

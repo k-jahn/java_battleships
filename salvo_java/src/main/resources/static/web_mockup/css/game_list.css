@@ -1,0 +1,19 @@
+body {
+  font-family: sans-serif; }
+
+span {
+  padding: 4px 10px;
+  display: inline-block;
+  background-color: #f0fff0;
+  margin: 5px; }
+
+span:hover {
+  background-color: #ddffdd;
+  box-shadow: 2px 2px 2px rgba(0, 0, 0, 0.6);
+  cursor: pointer; }
+
+ol a {
+  text-decoration: none;
+  color: #222; }
+
+/*# sourceMappingURL=game_list.css.map */
