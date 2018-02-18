@@ -28,9 +28,9 @@ function drawShips(ships) {
     for (let loc of ship.locations) {
       $(`#board-player-${loc}`).addClass('board-cell-ship')
     }
-    let shipLoc = [ship.locations[0].charCodeAt(0) - 64, +ship.locations[0].split('')[1]]
+    let shipLoc = [ship.locations[0].charCodeAt(0) - 64, +ship.locations[0].match(/\d+/)[0]]
     let shipSize = [1 + ship.locations[ship.locations.length - 1].charCodeAt(0) - 64 - shipLoc[0],
-    1 + +ship.locations[ship.locations.length - 1].split('')[1] - shipLoc[1]]
+      1 + +ship.locations[ship.locations.length - 1].match(/\d+/)[0] - shipLoc[1]]
     console.log(ship, shipLoc, shipSize)
     $('#board-player').append(
       $('<div>',

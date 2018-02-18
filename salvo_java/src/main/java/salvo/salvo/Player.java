@@ -18,15 +18,19 @@ public class Player {
 
 
     public List<GamePlayer> getGamePlayers() {
-        return gamePlayers;
+        return this.gamePlayers;
     }
 
     public void setGamePlayers(List<GamePlayer> gamePlayers) {
         this.gamePlayers = gamePlayers;
     }
+    public void addGamePlayer(GamePlayer gamePlayer) {
+        gamePlayer.setPlayer(this);
+        this.gamePlayers.add(gamePlayer);
+    }
 
     public List<Score> getScores() {
-        return scores;
+        return scores = new ArrayList<>();
     }
 
     public Score getScore(Game game) {
@@ -64,8 +68,9 @@ public class Player {
 
     private String userName;
 
-    public Player(String user) {
+    public Player(String user, String password) {
         this.userName = user;
+        this.password = password;
     }
 
     public long getId() {
@@ -80,6 +85,15 @@ public class Player {
         this.userName = userName;
     }
 
+    private String password;
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
 
     public float getTotalScore() {
         float totalScore =0;

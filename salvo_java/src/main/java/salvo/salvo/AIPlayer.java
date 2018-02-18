@@ -37,16 +37,19 @@ public class AIPlayer {
             int length = shipLength.get(entry.getKey());
 
             for (int i = 0; i < entry.getValue(); i++) {
+
                 Ship ship = new Ship();
                 ship.setShipType(entry.getKey());
                 Boolean boardLegal = false;
                 List<String> shipLocations = new ArrayList<>();
-                while (!boardLegal) {
-                    shipLocations = new ArrayList<>();
 
+                while (!boardLegal) {
+
+                    shipLocations = new ArrayList<>();
                     boardLegal = true;
                     int x, y;
                     Boolean horizontal = ThreadLocalRandom.current().nextBoolean();
+
                     x = ThreadLocalRandom.current().nextInt(1, 1+boardWidth - ((horizontal) ? length : 0));
                     y = ThreadLocalRandom.current().nextInt(1, 1+boardHeight - ((horizontal) ? 0 : length));
                     for (int j = 0; j < length; j++) {

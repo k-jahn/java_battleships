@@ -1,10 +1,12 @@
 package salvo.salvo;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.security.Principal;
 import java.util.*;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
@@ -36,7 +38,8 @@ public class SalvoController {
     }
 
     @RequestMapping("/standings")
-    public List<Map<String, Object>> getLeaderBoard() {
+    public List<Map<String, Object>> getLeaderBoard(Principal principal) {
+
         return createStandingsMap(playerRepository.findAll());
     }
 
@@ -99,7 +102,11 @@ public class SalvoController {
         gameViewMap.put("player", createGamePlayerMap(activeGamePlayer));
         gameViewMap.put("id", game.getId());
         gameViewMap.put("created", game.getCreationDate());
-        if (game.getGamePlayers().size() > 1) {
+        int q = game.getGamePlayers().size();
+
+
+        // TODO - find out why player are getting repeat-added
+        if (new HashSet<GamePlayer>(game.getGamePlayers()).size() == 2) {
             gameViewMap.put("opponent", game.getGamePlayers()
                     .stream()
                     .filter(gamePlayer -> gamePlayer.getId() != activeGamePlayer.getId())
@@ -124,12 +131,6 @@ public class SalvoController {
         return shipMap;
     }
 
-    private Map<String, Object> createSalvoMap(Salvo salvo) {
-        Map<String, Object> salvoMap = new HashMap<>();
-        salvoMap.put("turn", salvo.getTurn());
-        salvoMap.put("locations", salvo.getLocations());
-        return salvoMap;
-    }
 
     private Map<String, Map<String, List<String>>> createGameSalvoMap(Game game) {
         Map<String, Map<String, List<String>>> gameSalvoMap = new HashMap<>();

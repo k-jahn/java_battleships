@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <title>Salvo Frontend Mockup</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" type="text/css" media="screen" href="css/game_list.css" />
+  <link rel="stylesheet" type="text/css" media="screen" href="css/game_view.css" />
+  <!-- <link rel="stylesheet" type="text/css" media="screen" href="css/leaderboard.css" /> -->
+  <link rel="stylesheet" type="text/css" media="screen" href="css/main.css" />
+  <script src="vendor/jquery.min.js"></script>
+  <script src="scripts/game_list.js"></script>
+  <!-- <script src="scripts/game_view.js"></script> -->
+  <script src="scripts/leaderboard.js"></script>
+  <script src="scripts/main.js"></script>
+</head>
+
+<body>
+  
+  <button class="nav-link" data-page="game_list">game list</button>
+  <button class="nav-link" data-page="leaderboard">leaderboard</button>
+  
+  
+  <form class="auth-form active" id="login-form">
+    Username
+    <input type="text">
+    Password
+    <input type="text">
+    <button>Log In</button>
+    <button>Sign Up</button>
+  </form>
+  <form class="auth-form" id="logout-form">
+    <button>Log Out</button>
+  </form>
+
+  <div class="modal active" id="game_list">
+    <h1>Salvo Game List:</h2>
+      <p>
+        click on player for game view
+      </p>
+      <ol></ol>
+  </div>
+  <div class="modal" id="game_view">
+      <h1>game_view</h1>
+      <div class="info"></div>
+      
+      <div class="board-container">
+        <div>
+          <h3 id="title-player"></h3>
+          <div class="board" id="board-player"></div>
+        </div>
+        <div>
+          <h3 id="title-opponent"></h3>
+          <div class="board" id="board-opponent"></div>
+        </div>
+      </div>
+  </div>
+  <div class="modal" id="leaderboard">
+      <h1>Standings</h1>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Rank</th>
+            <th>Email</th>
+            <th>Score</th>
+            <th>Wins</th>
+            <th>Losses</th>
+            <th>Ties</th>
+          </tr>
+        </thead>
+        <tbody>
+      
+        </tbody>
+      </table>
+  </div>
+</body>
+
+</html>

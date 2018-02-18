@@ -1,10 +1,28 @@
 package salvo.salvo;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.authentication.configurers.GlobalAuthenticationConfigurerAdapter;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.core.authority.AuthorityUtils;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.web.WebAttributes;
+import org.springframework.security.web.authentication.logout.HttpStatusReturningLogoutSuccessHandler;
 
+import javax.persistence.Tuple;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -19,6 +37,9 @@ public class SalvoApplication {
         SpringApplication.run(SalvoApplication.class, args);
     }
 
+
+    // populate database with samples
+
     @Bean
     public CommandLineRunner initData(PlayerRepository playerRepository,
                                       GameRepository gameRepository,
@@ -29,25 +50,25 @@ public class SalvoApplication {
     ) {
         return (args) -> {
             // sample names
-            String[] sampleNames = {"c.obrian@ctu.gov",
-                    "vladimir.ilyich.ulyanov@lenin.com",
-                    "alan.turing@blechtly-park.org.uk",
-                    "benoit.mandelbrot@fractal.pl",
-                    "sid.vicious@pistols.co.uk",
-                    "konrad.zuse@huenfeld.de",
-                    "d.palmer@whitehouse.gov",
-                    "t.almeida@ctu.gov",
-                    "j.bauer@ctu.gov",
-                    "r.sanchez.c288@citadel.or",
-                    "morty_s@gmail.com",
-                    "p.fry@planet-express.com",
-                    "leela@planet-express.com",
-                    "h.farnsworth@planet-express.com",
-                    "bender@kissmy-sma.com",
+            String[][] sampleNames = {
+                    {"c.obrian@ctu.gov", "password"},
+                    {"vladimir.ilyich.ulyanov@lenin.com", "secret"},
+                    {"alan.turing@blechtly-park.org.uk", "test"},
+                    {"benoit.mandelbrot@fractal.pl", "self-similiarity"},
+                    {"sid.vicious@pistols.co.uk", "3chords"},
+                    {"d.palmer@whitehouse.gov", "noreferencejoke"},
+                    {"t.almeida@ctu.gov", "dito"},
+                    {"j.bauer@ctu.gov", "amiaspy?"},
+                    {"r.sanchez.c288@citadel.or", "g4n1u5"},
+                    {"morty_s@gmail.com", "porn"},
+                    {"p.fry@planet-express.com", "brainslug"},
+                    {"leela@planet-express.com", "n1bbr"},
+                    {"h.farnsworth@planet-express.com", "good_news_everyone"},
+                    {"bender@kissmy-sma.com", "myownamusementpark"},
             };
             // sample players
             List<Player> samplePlayers = Arrays.stream(sampleNames)
-                    .map(name -> new Player(name))
+                    .map(name -> new Player(name[0], name[1]))
                     .collect(Collectors.toList());
 
 
@@ -69,27 +90,31 @@ public class SalvoApplication {
                     .map(game -> {
 
 
-                        List<GamePlayer> gamePlayers = new ArrayList<>();
+                                List<GamePlayer> gamePlayers = new ArrayList<>();
                                 int numberOfPlayers = 1 + (ThreadLocalRandom.current().nextFloat() < 0.8 ? 1 : 0);
                                 List<Player> excludedPlayers = new ArrayList<>();
 
-                        for (int i = 0; i < numberOfPlayers; i++) {
+                                for (int i = 0; i < numberOfPlayers; i++) {
                                     Boolean excludeFlag = true;
                                     Player player = null;
                                     while (excludeFlag) {
                                         player = samplePlayers.get((int) (Math.random() * samplePlayers.size()));
                                         excludeFlag = excludedPlayers.contains(player);
-                                        excludedPlayers.add(player);
                                     }
+                                    excludedPlayers.add(player);
                                     Date joinDate = Date.from(
                                             game.getCreationDate().toInstant().minusSeconds((int) (Math.random() * 300))
                                     );
-                                    gamePlayers.add(new GamePlayer(player, game, joinDate));
+                                    GamePlayer gamePlayer = new GamePlayer();
+                                    gamePlayer.setJoinDate(joinDate);
+                                    player.addGamePlayer(gamePlayer);
+                                    game.addGamePlayer(gamePlayer);
+                                    gamePlayers.add(gamePlayer);
+
                                 }
 
-                                game.setGamePlayers(gamePlayers);
 
-                        return gamePlayers;
+                                return gamePlayers;
                             }
                     ).flatMap(List::stream).collect(Collectors.toList());
 
@@ -178,4 +203,76 @@ public class SalvoApplication {
     }
 
 }
+
+
+@Configuration
+class WebSecurityConfiguration extends GlobalAuthenticationConfigurerAdapter {
+
+    @Autowired
+    PlayerRepository playerRepository;
+
+    @Override
+    public void init(AuthenticationManagerBuilder auth) throws Exception {
+        auth.userDetailsService(userDetailsService());
+    }
+
+    @Bean
+    UserDetailsService userDetailsService() {
+        return new UserDetailsService() {
+
+            @Override
+            public UserDetails loadUserByUsername(String userName) throws UsernameNotFoundException {
+                List<Player> players = playerRepository.findByUserName(userName);
+                if (!players.isEmpty()) {
+                    Player player = players.get(0);
+                    return new User(player.getUserName(),
+                            player.getPassword(),
+                            AuthorityUtils.createAuthorityList("USER"));
+                                    //.commaSeparatedStringToAuthorityList("USER,ADMIN"));
+                } else {
+                    throw new UsernameNotFoundException("Unknown user: " + userName);
+                }
+            }
+        };
+    }
+}
+
+
+@Configuration
+@EnableWebSecurity
+class WebSecurityConfig extends WebSecurityConfigurerAdapter {
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        http.authorizeRequests()
+                .antMatchers("/admin/**").hasAuthority("USER")
+                .antMatchers("/web_mockup/**").permitAll()
+                .and()
+                .formLogin();
+
+
+//
+//        // turn off checking for CSRF tokens
+//        http.csrf().disable();
+//
+//        // if user is not authenticated, just send an authentication failure response
+//        http.exceptionHandling().authenticationEntryPoint((req, res, exc) -> res.sendError(HttpServletResponse.SC_UNAUTHORIZED));
+//
+//        // if login is successful, just clear the flags asking for authentication
+//        http.formLogin().successHandler((req, res, auth) -> clearAuthenticationAttributes(req));
+//
+//        // if login fails, just send an authentication failure response
+//        http.formLogin().failureHandler((req, res, exc) -> res.sendError(HttpServletResponse.SC_UNAUTHORIZED));
+//
+//        // if logout is successful, just send a success response
+//        http.logout().logoutSuccessHandler(new HttpStatusReturningLogoutSuccessHandler());
+    }
+//
+//    private void clearAuthenticationAttributes(HttpServletRequest request) {
+//        HttpSession session = request.getSession(false);
+//        if (session != null) {
+//            session.removeAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
+//        }
+//
+}
+
 

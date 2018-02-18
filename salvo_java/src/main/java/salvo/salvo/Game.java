@@ -12,10 +12,10 @@ public class Game {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long id;
 
-    @OneToMany(mappedBy = "game", fetch=FetchType.EAGER)
-    private List<GamePlayer> gamePlayers;
+    @OneToMany(mappedBy = "game", fetch = FetchType.EAGER)
+    private List<GamePlayer> gamePlayers =  new ArrayList<>();
 
-    @OneToMany(mappedBy = "game", fetch=FetchType.EAGER)
+    @OneToMany(mappedBy = "game", fetch = FetchType.EAGER)
     private List<Score> scores = new ArrayList<>();
 
     public List<GamePlayer> getGamePlayers() {
@@ -50,6 +50,11 @@ public class Game {
         this.gamePlayers = gamePlayers;
     }
 
+    public void addGamePlayer(GamePlayer gamePlayer) {
+        gamePlayer.setGame(this);
+        this.gamePlayers.add(gamePlayer);
+    }
+
     public void setId(long id) {
         this.id = id;
     }
@@ -62,7 +67,7 @@ public class Game {
         this.scores = scores;
     }
 
-    public void addScore(Score score){
+    public void addScore(Score score) {
         score.setGame(this);
         this.scores.add(score);
     }
