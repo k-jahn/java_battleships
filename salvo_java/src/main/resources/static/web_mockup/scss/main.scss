@@ -24,8 +24,8 @@
 // @import "../../../../../../../node_modules/bootstrap/scss/_button-group";
 // @import "../../../../../../../node_modules/bootstrap/scss/_input-group";
 // @import "../../../../../../../node_modules/bootstrap/scss/_custom-forms";
-// @import "../../../../../../../node_modules/bootstrap/scss/_nav";
-// @import "../../../../../../../node_modules/bootstrap/scss/_navbar";
+@import "../../../../../../../node_modules/bootstrap/scss/_nav";
+@import "../../../../../../../node_modules/bootstrap/scss/_navbar";
 // @import "../../../../../../../node_modules/bootstrap/scss/_card";
 // @import "../../../../../../../node_modules/bootstrap/scss/_breadcrumb";
 // @import "../../../../../../../node_modules/bootstrap/scss/_pagination";
@@ -45,6 +45,13 @@
 
 // =======================================================================
 
+
+
+body {
+  font-family: sans-serif;
+}
+
+
 .modal {
   display: none;
   &.active{
@@ -59,3 +66,13 @@
   }
 }
 
+nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: top;
+  height: 3em;
+}
+
+.error-display {
+  color: red;
+}

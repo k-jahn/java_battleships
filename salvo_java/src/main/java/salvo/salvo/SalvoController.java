@@ -1,13 +1,16 @@
 package salvo.salvo;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
 import java.util.*;
+import java.util.regex.Pattern;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
@@ -17,6 +20,7 @@ import static java.util.stream.Collectors.toList;
 @RequestMapping("/api")
 @RestController
 public class SalvoController {
+
 
     @Autowired
     private GameRepository gameRepository;
@@ -28,23 +32,85 @@ public class SalvoController {
     private PlayerRepository playerRepository;
 
     @RequestMapping("/games")
-    public List<Map<String, Object>> getAllGameIds() {
-        return gameRepository.findAll().stream().map(game -> createGameMap(game)).collect(toList());
+    public ResponseEntity<Map<String, Object>> getGameList(Authentication authentication, Principal principal) {
+        Player player = principal == null ? null : playerRepository.findByUserName(principal.getName()).get(0);
+        Boolean isAdmin = authentication == null ? false : authentication.getAuthorities().contains(new SimpleGrantedAuthority("ADMIN"));
+
+        return new ResponseEntity<Map<String, Object>>(createGameListMap(player, isAdmin), HttpStatus.OK);
     }
 
     @RequestMapping("/game_view/{gamePlayerId}")
-    public Map<String, Object> getGameView(@PathVariable Long gamePlayerId) {
-        return createGameViewMap(gamePlayerRepository.findGamePlayerById(gamePlayerId));
+    public ResponseEntity<Object> getGameView(@PathVariable Long gamePlayerId, Authentication authentication) {
+        GamePlayer gamePlayer = gamePlayerRepository.findGamePlayerById(gamePlayerId);
+        if (authentication != null && (authentication.getName() == gamePlayer.getPlayer().getUserName() || authentication.getAuthorities().contains(new SimpleGrantedAuthority("ADMIN")))) {
+            return new ResponseEntity<Object>(createGameViewMap(gamePlayer), HttpStatus.OK);
+        } else {
+            return new ResponseEntity<Object>("{\"error\": \"not authorized to access game_view\"}", HttpStatus.UNAUTHORIZED);
+        }
+
     }
 
     @RequestMapping("/standings")
-    public List<Map<String, Object>> getLeaderBoard(Principal principal) {
-
+    public List<Map<String, Object>> getLeaderBoard() {
         return createStandingsMap(playerRepository.findAll());
     }
 
+    @RequestMapping(path = "/players", method = RequestMethod.POST)
+    public ResponseEntity<Map<String, Object>> createPlayer(@RequestParam String username, @RequestParam String password) {
+        // check if username is valid email address
+        if (!Pattern.matches("^[A-Za-z0-9.\\-_]+@[A-Za-z0-9.\\-_]+\\.[A-Za-z]{2,}$", username)) {
+            Map<String, Object> errorMap = new HashMap<>();
+            errorMap.put("error", "bad email");
+            return new ResponseEntity<>(errorMap, HttpStatus.FORBIDDEN);
+        }
+        // check if username is already in use
+        List<Player> playersWithName  = playerRepository.findByUserName(username);
+        if (playersWithName.size()!=0) {
+            Map<String, Object> errorMap = new HashMap<>();
+            errorMap.put("error", "email already in use");
+            return new ResponseEntity<>(errorMap, HttpStatus.FORBIDDEN);
+        }
+        // check if password is valid
+        if (!Pattern.matches("^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d).{6,}$", password)) {
+            Map<String, Object> errorMap = new HashMap<>();
+            errorMap.put("error", "bad password");
+            return new ResponseEntity<>(errorMap, HttpStatus.FORBIDDEN);
+        }
+        Player player = playerRepository.save(new Player(username,password));
+
+        return new ResponseEntity<>(createPlayerMap(player), HttpStatus.CREATED);
+    }
 
     // private output formatting methods\
+    //        return gameRepository.findAll().stream().map(game -> createGameMap(game)).collect(toList());
+    private Map<String, Object> createGameListMap(Player player, Boolean isAdmin) {
+        Map<String, Object> gameListMap = new HashMap<>();
+        gameListMap.put(
+                "player",
+                player == null ? null : createPlayerMap(player)
+        );
+        gameListMap.put("games",
+                player == null
+                        ?
+                        new ArrayList()
+                        :
+                        isAdmin
+                                ?
+                                gameRepository.findAll()
+                                        .stream()
+                                        .map(game -> createGameMap(game))
+                                        .collect(Collectors.toList())
+                                :
+                                player.getGamePlayers()
+                                        .stream()
+                                        .map(game -> game.getGame())
+                                        .map(game -> createGameMap(game))
+                                        .collect(Collectors.toList())
+        );
+        return gameListMap;
+    }
+
+
     private Map<String, Object> createGameMap(Game game) {
         Map<String, Object> gameMap = new HashMap<>();
         gameMap.put("id", game.getId());
@@ -59,6 +125,7 @@ public class SalvoController {
 
         return gameMap;
     }
+
 
     private Map<String, Object> createGamePlayerMap(GamePlayer gamePlayer) {
         Map<String, Object> gamePlayerMap = new HashMap<>();
@@ -75,8 +142,6 @@ public class SalvoController {
                     createScoreMap(score)
             );
         }
-
-
         return gamePlayerMap;
     }
 
@@ -105,7 +170,6 @@ public class SalvoController {
         int q = game.getGamePlayers().size();
 
 
-        // TODO - find out why player are getting repeat-added
         if (new HashSet<GamePlayer>(game.getGamePlayers()).size() == 2) {
             gameViewMap.put("opponent", game.getGamePlayers()
                     .stream()
@@ -159,9 +223,7 @@ public class SalvoController {
 
 
             standings.add(playerMap);
-
         }
-
         return standings;
     }
 

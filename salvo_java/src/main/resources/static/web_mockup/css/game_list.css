@@ -1,18 +1,13 @@
-body {
-  font-family: sans-serif; }
-
-span {
+#game-list span {
   padding: 4px 10px;
   display: inline-block;
   background-color: #f0fff0;
   margin: 5px; }
-
-span:hover {
+#game-list a span:hover {
   background-color: #ddffdd;
-  box-shadow: 2px 2px 2px rgba(0, 0, 0, 0.6);
+  outline: 2px solid grey;
   cursor: pointer; }
-
-ol a {
+#game-list ol a {
   text-decoration: none;
   color: #222; }
 

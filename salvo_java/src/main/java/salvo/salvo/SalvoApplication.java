@@ -49,11 +49,11 @@ public class SalvoApplication {
                                       ScoreRepository scoreRepository
     ) {
         return (args) -> {
-            // sample names
+            // sample names with "supersecure" passwords
             String[][] sampleNames = {
-                    {"c.obrian@ctu.gov", "password"},
-                    {"vladimir.ilyich.ulyanov@lenin.com", "secret"},
-                    {"alan.turing@blechtly-park.org.uk", "test"},
+                    {"c.obrian@ctu.gov", "Password123"},
+                    {"vladimir.ilyich.ulyanov@lenin.com", "s3cr3t"},
+                    {"alan.turing@blechtly-park.org.uk", "enigma39"},
                     {"benoit.mandelbrot@fractal.pl", "self-similiarity"},
                     {"sid.vicious@pistols.co.uk", "3chords"},
                     {"d.palmer@whitehouse.gov", "noreferencejoke"},
@@ -61,16 +61,19 @@ public class SalvoApplication {
                     {"j.bauer@ctu.gov", "amiaspy?"},
                     {"r.sanchez.c288@citadel.or", "g4n1u5"},
                     {"morty_s@gmail.com", "porn"},
-                    {"p.fry@planet-express.com", "brainslug"},
-                    {"leela@planet-express.com", "n1bbr"},
+                    {"p.fry@planet-express.com", "00brainslug"},
+                    {"leela@planet-express.com", "n1bbl3r"},
                     {"h.farnsworth@planet-express.com", "good_news_everyone"},
                     {"bender@kissmy-sma.com", "myownamusementpark"},
+                    {"admin@salvogame.com", "admin11"}
             };
             // sample players
             List<Player> samplePlayers = Arrays.stream(sampleNames)
                     .map(name -> new Player(name[0], name[1]))
                     .collect(Collectors.toList());
-
+            Player admin = samplePlayers.stream()
+                    .filter(player -> player.getUserName() == "admin@salvogame.com")
+                    .collect(Collectors.toList()).get(0);
 
             // sample games
             Date now = new Date();
@@ -93,7 +96,7 @@ public class SalvoApplication {
                                 List<GamePlayer> gamePlayers = new ArrayList<>();
                                 int numberOfPlayers = 1 + (ThreadLocalRandom.current().nextFloat() < 0.8 ? 1 : 0);
                                 List<Player> excludedPlayers = new ArrayList<>();
-
+                                excludedPlayers.add(admin);
                                 for (int i = 0; i < numberOfPlayers; i++) {
                                     Boolean excludeFlag = true;
                                     Player player = null;
@@ -225,10 +228,16 @@ class WebSecurityConfiguration extends GlobalAuthenticationConfigurerAdapter {
                 List<Player> players = playerRepository.findByUserName(userName);
                 if (!players.isEmpty()) {
                     Player player = players.get(0);
-                    return new User(player.getUserName(),
-                            player.getPassword(),
-                            AuthorityUtils.createAuthorityList("USER"));
-                                    //.commaSeparatedStringToAuthorityList("USER,ADMIN"));
+                    if (player.getUserName() == "admin@salvogame.com") {
+                        return new User(player.getUserName(),
+                                player.getPassword(),
+                                AuthorityUtils.commaSeparatedStringToAuthorityList("USER,ADMIN"));
+                    } else {
+                        return new User(player.getUserName(),
+                                player.getPassword(),
+                                AuthorityUtils.createAuthorityList("USER"));
+                    }
+
                 } else {
                     throw new UsernameNotFoundException("Unknown user: " + userName);
                 }
@@ -244,35 +253,45 @@ class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.authorizeRequests()
-                .antMatchers("/admin/**").hasAuthority("USER")
+                // test url
+                .antMatchers("/admin/**").hasAuthority("ADMIN")
+                .antMatchers("/rest/**").hasAuthority("USER")
+                // basic html ist public
                 .antMatchers("/web_mockup/**").permitAll()
+                .antMatchers("/api/login").permitAll()
+                .antMatchers("/api/logout").permitAll()
                 .and()
                 .formLogin();
 
+        http.formLogin()
+                .usernameParameter("username")
+                .passwordParameter("password")
+                .loginPage("/api/login");
 
-//
-//        // turn off checking for CSRF tokens
-//        http.csrf().disable();
-//
-//        // if user is not authenticated, just send an authentication failure response
-//        http.exceptionHandling().authenticationEntryPoint((req, res, exc) -> res.sendError(HttpServletResponse.SC_UNAUTHORIZED));
-//
-//        // if login is successful, just clear the flags asking for authentication
-//        http.formLogin().successHandler((req, res, auth) -> clearAuthenticationAttributes(req));
-//
-//        // if login fails, just send an authentication failure response
-//        http.formLogin().failureHandler((req, res, exc) -> res.sendError(HttpServletResponse.SC_UNAUTHORIZED));
-//
-//        // if logout is successful, just send a success response
-//        http.logout().logoutSuccessHandler(new HttpStatusReturningLogoutSuccessHandler());
+        http.logout().logoutUrl("/api/logout");
+
+        // turn off checking for CSRF tokens
+        http.csrf().disable();
+
+        // if user is not authenticated, just send an authentication failure response
+        http.exceptionHandling().authenticationEntryPoint((req, res, exc) -> res.sendError(HttpServletResponse.SC_UNAUTHORIZED));
+
+        // if login is successful, just clear the flags asking for authentication
+        http.formLogin().successHandler((req, res, auth) -> clearAuthenticationAttributes(req));
+
+        // if login fails, just send an authentication failure response
+        http.formLogin().failureHandler((req, res, exc) -> res.sendError(HttpServletResponse.SC_UNAUTHORIZED));
+
+        // if logout is successful, just send a success response
+        http.logout().logoutSuccessHandler(new HttpStatusReturningLogoutSuccessHandler());
     }
-//
-//    private void clearAuthenticationAttributes(HttpServletRequest request) {
-//        HttpSession session = request.getSession(false);
-//        if (session != null) {
-//            session.removeAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
-//        }
-//
+
+    private void clearAuthenticationAttributes(HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
+        if (session != null) {
+            session.removeAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
+        }
+    }
 }
 
 

@@ -30,13 +30,12 @@ function drawShips(ships) {
     }
     let shipLoc = [ship.locations[0].charCodeAt(0) - 64, +ship.locations[0].match(/\d+/)[0]]
     let shipSize = [1 + ship.locations[ship.locations.length - 1].charCodeAt(0) - 64 - shipLoc[0],
-      1 + +ship.locations[ship.locations.length - 1].match(/\d+/)[0] - shipLoc[1]]
-    console.log(ship, shipLoc, shipSize)
+    1 + +ship.locations[ship.locations.length - 1].match(/\d+/)[0] - shipLoc[1]]
     $('#board-player').append(
       $('<div>',
         {
           class: 'overlay-ship',
-          style: `transform: translate(${shipLoc[0] * cellSize+6}px, ${shipLoc[1] * cellSize+6}px); height: ${shipSize[1] * cellSize - 2 -12}px; width: ${ shipSize[0] * cellSize - 2 -12}px`
+          style: `transform: translate(${shipLoc[0] * cellSize + 6}px, ${shipLoc[1] * cellSize + 6}px); height: ${shipSize[1] * cellSize - 2 - 12}px; width: ${shipSize[0] * cellSize - 2 - 12}px`
         }).append('<div>')
     )
   }
@@ -75,7 +74,14 @@ function getGamePlayer(id) {
 
     // draw salvoes
 
-  }).fail(() => $('h1').html(`gamePlayer ${id} not found`))
+  }).fail(r => {
+    switch (r.status) {
+      case 404: $('h1').html(`<em>game_view${id}</em> not found`); break;
+      case 401: $('h1').html(`User not authorized for <em>game_view?id=${id}</em>`); break;
+      case 500: $('h1').html(`Internal error. Please contact server admin`); break;
+
+    }
+  })
 }
 
 $(() => {

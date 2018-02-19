@@ -17,63 +17,93 @@
 </head>
 
 <body>
-  
-  <button class="nav-link" data-page="game_list">game list</button>
-  <button class="nav-link" data-page="leaderboard">leaderboard</button>
-  
-  
-  <form class="auth-form active" id="login-form">
-    Username
-    <input type="text">
-    Password
-    <input type="text">
-    <button>Log In</button>
-    <button>Sign Up</button>
-  </form>
-  <form class="auth-form" id="logout-form">
-    <button>Log Out</button>
-  </form>
+  <nav>
+    <div>
+      <button class="js-nav-link" data-page="game-list">game list</button>
+      <button class="js-nav-link" data-page="leaderboard">leaderboard</button>
+    </div>
 
-  <div class="modal active" id="game_list">
-    <h1>Salvo Game List:</h2>
-      <p>
-        click on player for game view
-      </p>
-      <ol></ol>
-  </div>
-  <div class="modal" id="game_view">
-      <h1>game_view</h1>
-      <div class="info"></div>
-      
-      <div class="board-container">
-        <div>
-          <h3 id="title-player"></h3>
-          <div class="board" id="board-player"></div>
-        </div>
-        <div>
-          <h3 id="title-opponent"></h3>
-          <div class="board" id="board-opponent"></div>
-        </div>
+
+    <form class="auth-form active" id="login-form" onsubmit="return false">
+      <div>
+        <strong>
+          Log in
+        </strong>
+        Username
+        <input name="loginUsername" type="text"> Password
+        <input name="loginPassword" type="password">
+        <button id="button-login">Log In</button> ||
+        <button class="js-nav-link" data-page="signup">Sign Up</button>
       </div>
-  </div>
-  <div class="modal" id="leaderboard">
-      <h1>Standings</h1>
-      <table class="table">
-        <thead>
-          <tr>
-            <th>Rank</th>
-            <th>Email</th>
-            <th>Score</th>
-            <th>Wins</th>
-            <th>Losses</th>
-            <th>Ties</th>
-          </tr>
-        </thead>
-        <tbody>
-      
-        </tbody>
-      </table>
-  </div>
+      <span class="error-display"></span>
+    </form>
+
+    <form class="auth-form" id="logout-form" onsubmit="return false">
+      <strong>Logged in as
+        <span class="user-name"></span>
+      </strong>
+      <button id="button-logout">Log Out</button>
+    </form>
+  </nav>
+
+
+  <!-- modal views -->
+
+  <!-- game list -->
+  <main class="modal active" id="game-list">
+    <h1>Salvo Game List:</h1>
+      <ol></ol>
+  </main>
+
+  <!-- sign up -->
+  <main class="modal" id="signup">
+    <h3>Sign Up</h3>
+
+    <form id="signup-form" onsubmit="return false">
+      <p>
+        Username
+        </br>
+        <input name="signupUsername" type="text">
+        <span class="error-display username-error-display"></span>
+      </p>
+      <p>
+        Password
+        <br>
+        <input name="signupPassword" type="password">
+        <span class="error-display password-error-display"></span>
+      </p>
+      <p>
+        Repeat Password
+        <br>
+        <input name="signupPasswordRepeat" type="password">
+      </p>
+
+      <button id="button-signup">Sign Up</button>/
+      <span class="error-display server-error-display"></span>
+    </form>
+  </main>
+
+
+
+  <!-- leaderboard -->
+  <main class="modal" id="leaderboard">
+    <h1>Standings</h1>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Rank</th>
+          <th>Email</th>
+          <th>Score</th>
+          <th>Wins</th>
+          <th>Losses</th>
+          <th>Ties</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- js-generated content here -->
+      </tbody>
+    </table>
+  </main>
 </body>
 
 </html>
