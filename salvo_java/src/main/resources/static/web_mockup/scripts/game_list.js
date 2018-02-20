@@ -1,23 +1,13 @@
 
-
-function drawGameList(rsp) {
-  if (rsp.player) {
-    // change navbar - bad structure TODO fix
-    showLoginLogout(rsp.player.email)
-
-    $('#game-list h1').html(`Games for <em>${rsp.player.email}</em>`)
-  } else {
-    showLoginLogout(null)
-    $('#game-list h1').html(`Log in to see your games`)
-  }
-  list = rsp.games.sort((g1, g2) => g1.creationDate - g2.creationDate)
+function drawList(gameList, playerId, htmlId) {
+  list = gameList.sort((g1, g2) => g1.creationDate - g2.creationDate)
     .map(function (game, i) {
       li = $('<li>').append($('<em>').html(new Date(game.creationDate).toLocaleString()))
       game.gamePlayers.map(x =>
-        x.player.id == rsp.player.id ?
-        $('<a>', { html: $('<span>', { html: x.player.email }), href: `game_view.html?id=${x.id}` })
-        :
-        $('<span>', { html: x.player.email })
+        x.player.id == playerId ?
+          $('<a>', { html: $('<span>', { html: x.player.email }), href: `game_view.html?id=${x.id}` })
+          :
+          $('<span>', { html: x.player.email })
       ).forEach((x, i, t) => {
         li.append(x);
         if (i < t.length - 1) {
@@ -37,8 +27,26 @@ function drawGameList(rsp) {
       }
       return li
     })
-  $('ol').html('')
+  $(`ol#${htmlId}`).html('')
     .append(list)
+}
+
+
+
+function drawGameList(rsp) {
+  if (rsp.player) {
+    // change navbar - bad structure TODO fix
+    showLoginLogout(rsp.player.email)
+
+    $('#game-list #player-games-title').html(`<em>${rsp.player.email}</em>'s previous games`)
+  } else {
+    showLoginLogout(null)
+    $('#game-list #player-games-title').html(`Log in to see your previous games`)
+  }
+  let playerId = rsp.player ? rsp.player.id : null
+  drawList(rsp.active_games, playerId, 'active-games')
+  drawList(rsp.past_games, playerId , 'past-games')
+
 }
 
 

@@ -51,8 +51,11 @@
 
   <!-- game list -->
   <main class="modal active" id="game-list">
-    <h1>Salvo Game List:</h1>
-      <ol></ol>
+    <h1></h1>
+    <h2>Current Games</h2>
+      <ol id="active-games"></ol>
+    <h2 id="player-games-title"></h2>
+      <ol id="past-games"></ol>
   </main>
 
   <!-- sign up -->
@@ -78,7 +81,7 @@
         <input name="signupPasswordRepeat" type="password">
       </p>
 
-      <button id="button-signup">Sign Up</button>/
+      <button id="button-signup">Sign Up</button>
       <span class="error-display server-error-display"></span>
     </form>
   </main>

@@ -94,7 +94,7 @@ public class SalvoApplication {
 
 
                                 List<GamePlayer> gamePlayers = new ArrayList<>();
-                                int numberOfPlayers = 1 + (ThreadLocalRandom.current().nextFloat() < 0.8 ? 1 : 0);
+                                int numberOfPlayers = 1 + (ThreadLocalRandom.current().nextFloat() < 0.9 ? 1 : 0);
                                 List<Player> excludedPlayers = new ArrayList<>();
                                 excludedPlayers.add(admin);
                                 for (int i = 0; i < numberOfPlayers; i++) {
@@ -170,7 +170,7 @@ public class SalvoApplication {
             //sample Scores
             List<Score> sampleScores = sampleGames.stream()
                     .filter(game -> game.getGamePlayers().size() > 1)
-                    .filter(game -> ThreadLocalRandom.current().nextFloat() < 0.7)
+                    .filter(game -> ThreadLocalRandom.current().nextFloat() < 0.9)
                     .map(game -> {
                         List<Score> scores = new ArrayList<>();
                         double pointsScored = ((float) ThreadLocalRandom.current().nextInt(0, 3)) / 2.0;

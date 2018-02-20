@@ -5,16 +5,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
 import java.util.*;
 import java.util.regex.Pattern;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
-import static java.util.stream.Collectors.collectingAndThen;
 import static java.util.stream.Collectors.toList;
 
 @RequestMapping("/api")
@@ -89,7 +86,16 @@ public class SalvoController {
                 "player",
                 player == null ? null : createPlayerMap(player)
         );
-        gameListMap.put("games",
+        gameListMap.put("active_games",
+                gameRepository.findAll()
+                        .stream()
+                        .filter(game -> game.getScores().size()==0)
+                        .map(game -> createGameMap(game))
+                        .collect(Collectors.toList())
+        );
+
+
+        gameListMap.put("past_games",
                 player == null
                         ?
                         new ArrayList()
@@ -98,12 +104,14 @@ public class SalvoController {
                                 ?
                                 gameRepository.findAll()
                                         .stream()
+                                        .filter(game -> game.getScores().size()!=0)
                                         .map(game -> createGameMap(game))
                                         .collect(Collectors.toList())
                                 :
                                 player.getGamePlayers()
                                         .stream()
                                         .map(game -> game.getGame())
+                                        .filter(game -> game.getScores().size()!=0)
                                         .map(game -> createGameMap(game))
                                         .collect(Collectors.toList())
         );

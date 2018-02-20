@@ -37,6 +37,16 @@ public class Game {
 
     private Date creationDate;
 
+    private Date finishDate = null;
+
+    public Date getFinishDate() {
+        return finishDate;
+    }
+
+    public void setFinishDate(Date finishDate) {
+        this.finishDate = finishDate;
+    }
+
     public Date getCreationDate() {
         return this.creationDate;
     }
