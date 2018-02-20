@@ -1,7 +1,0 @@
-{
-"version": 3,
-"mappings": "AAEA,IAAK;EACH,WAAW,EAAE,UAAU;;AAGzB,KAAM;EACJ,UAAU,EAAE,MAAM",
-"sources": ["../scss/leaderboard.scss"],
-"names": [],
-"file": "leaderboard.css"
-}

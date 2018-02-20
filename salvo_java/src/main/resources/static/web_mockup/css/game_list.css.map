@@ -1,7 +1,0 @@
-{
-"version": 3,
-"mappings": "AAEE,eAAK;EACH,OAAO,EAAE,QAAQ;EACjB,OAAO,EAAE,YAAY;EACrB,gBAAgB,EAAE,OAAO;EACzB,MAAM,EAAE,GAAG;AAGb,uBAAa;EACX,gBAAgB,EAAE,OAAO;EACzB,OAAO,EAAE,cAAc;EACvB,MAAM,EAAE,OAAO;AAGjB,eAAK;EACH,eAAe,EAAE,IAAI;EACrB,KAAK,EAAE,IAAI",
-"sources": ["../scss/game_list.scss"],
-"names": [],
-"file": "game_list.css"
-}
