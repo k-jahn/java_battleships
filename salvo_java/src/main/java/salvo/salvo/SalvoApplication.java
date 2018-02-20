@@ -249,13 +249,12 @@ class WebSecurityConfiguration extends GlobalAuthenticationConfigurerAdapter {
 
 @Configuration
 @EnableWebSecurity
-class WebSecurityConfig extends WebSecurityConfigurerAdapter {
+class  WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.authorizeRequests()
                 // test url
-                .antMatchers("/admin/**").hasAuthority("ADMIN")
-                .antMatchers("/rest/**").hasAuthority("USER")
+                .antMatchers("/rest/**").hasAuthority("ADMIN")
                 // basic html ist public
                 .antMatchers("/web_mockup/**").permitAll()
                 .antMatchers("/api/login").permitAll()

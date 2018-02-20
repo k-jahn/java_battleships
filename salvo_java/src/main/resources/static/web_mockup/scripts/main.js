@@ -25,7 +25,7 @@ function login(username, password) {
     .done(r => {
       getGameList()
     })
-    .fail($('#login-form .error-display').text('unkown email/password combination'))
+    .fail(_ => $('#login-form .error-display').text('unkown email/password combination'))
 }
 function signup(username, password, passwordRepeat) {
   $('#signup-form .error-display').text('')

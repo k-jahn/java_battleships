@@ -18,7 +18,7 @@ import static java.util.stream.Collectors.toList;
 @RestController
 public class SalvoController {
 
-
+    // autowire Repos ---------------------------------------------------------------
     @Autowired
     private GameRepository gameRepository;
 
@@ -28,28 +28,75 @@ public class SalvoController {
     @Autowired
     private PlayerRepository playerRepository;
 
-    @RequestMapping("/games")
-    public ResponseEntity<Map<String, Object>> getGameList(Authentication authentication, Principal principal) {
-        Player player = principal == null ? null : playerRepository.findByUserName(principal.getName()).get(0);
-        Boolean isAdmin = authentication == null ? false : authentication.getAuthorities().contains(new SimpleGrantedAuthority("ADMIN"));
 
+    // map requests --------------------------------------------------------------
+    @RequestMapping(path = "/games", method = RequestMethod.GET)
+    public ResponseEntity<Map<String, Object>> getGameList(Authentication authentication) {
+        Player player = getAuthPlayer(authentication);
+        Boolean isAdmin = isAuthAdmin(authentication);
         return new ResponseEntity<Map<String, Object>>(createGameListMap(player, isAdmin), HttpStatus.OK);
     }
 
-    @RequestMapping("/game_view/{gamePlayerId}")
+    @RequestMapping(path = "/games", method = RequestMethod.POST)
+    public ResponseEntity<Object> createGame(Authentication authentication) {
+        //return error if not logged in
+        if (!isAuthUser(authentication)) {
+            return new ResponseEntity<Object>("{\"error\": \"must be logged in to create game\"}", HttpStatus.UNAUTHORIZED);
+        }
+
+        Player player = getAuthPlayer(authentication);
+
+        //create&link java objects
+        GamePlayer gamePlayer = new GamePlayer();
+        player.addGamePlayer(gamePlayer);
+        Game game = new Game();
+        game.setCreationDate(new Date());
+        game.addGamePlayer(gamePlayer);
+
+        //save to tb
+        playerRepository.save(player);
+        gameRepository.save(game);
+        gamePlayerRepository.save(gamePlayer);
+
+        return new ResponseEntity<Object>(createGamePlayerMap(gamePlayer), HttpStatus.CREATED);
+    }
+
+    @RequestMapping(path = "/game/{gameId}/players", method = RequestMethod.POST)
+    public ResponseEntity<Object> joinGame(@PathVariable long gameId, Authentication authentication) {
+        Player player = getAuthPlayer(authentication);
+        if (player == null) {
+            return new ResponseEntity<Object>("{\"error\": \"must be logged in to join game\"}", HttpStatus.UNAUTHORIZED);
+        }
+        Game game = gameRepository.findById(gameId);
+        if (game==null) {
+            return new ResponseEntity<Object>("{\"error\": \"so such game found\"}", HttpStatus.FORBIDDEN);
+        }
+        if (game.getScores().size()>0) {
+            return new ResponseEntity<Object>("{\"error\": \"game is finished\"}", HttpStatus.FORBIDDEN);
+        }
+        if (new HashSet<>(game.getGamePlayers()).size() > 1) {
+            return new ResponseEntity<Object>("{\"error\": \"game is full\"}", HttpStatus.FORBIDDEN);
+        }
+
+        GamePlayer gamePlayer = new GamePlayer();
+        game.addGamePlayer(gamePlayer);
+        player.addGamePlayer(gamePlayer);
+        gameRepository.save(game);
+        playerRepository.save(player);
+        gamePlayerRepository.save(gamePlayer);
+
+        return new ResponseEntity<Object>(createGamePlayerMap(gamePlayer), HttpStatus.CREATED);
+    }
+
+
+    @RequestMapping(path = "/game_view/{gamePlayerId}", method = RequestMethod.GET)
     public ResponseEntity<Object> getGameView(@PathVariable Long gamePlayerId, Authentication authentication) {
         GamePlayer gamePlayer = gamePlayerRepository.findGamePlayerById(gamePlayerId);
-        if (authentication != null && (authentication.getName() == gamePlayer.getPlayer().getUserName() || authentication.getAuthorities().contains(new SimpleGrantedAuthority("ADMIN")))) {
+        if (getAuthPlayer(authentication) == gamePlayer.getPlayer() || isAuthAdmin(authentication)) {
             return new ResponseEntity<Object>(createGameViewMap(gamePlayer), HttpStatus.OK);
         } else {
             return new ResponseEntity<Object>("{\"error\": \"not authorized to access game_view\"}", HttpStatus.UNAUTHORIZED);
         }
-
-    }
-
-    @RequestMapping("/standings")
-    public List<Map<String, Object>> getLeaderBoard() {
-        return createStandingsMap(playerRepository.findAll());
     }
 
     @RequestMapping(path = "/players", method = RequestMethod.POST)
@@ -61,8 +108,8 @@ public class SalvoController {
             return new ResponseEntity<>(errorMap, HttpStatus.FORBIDDEN);
         }
         // check if username is already in use
-        List<Player> playersWithName  = playerRepository.findByUserName(username);
-        if (playersWithName.size()!=0) {
+        List<Player> playersWithName = playerRepository.findByUserName(username);
+        if (playersWithName.size() != 0) {
             Map<String, Object> errorMap = new HashMap<>();
             errorMap.put("error", "email already in use");
             return new ResponseEntity<>(errorMap, HttpStatus.FORBIDDEN);
@@ -73,13 +120,18 @@ public class SalvoController {
             errorMap.put("error", "bad password");
             return new ResponseEntity<>(errorMap, HttpStatus.FORBIDDEN);
         }
-        Player player = playerRepository.save(new Player(username,password));
+        Player player = playerRepository.save(new Player(username, password));
 
         return new ResponseEntity<>(createPlayerMap(player), HttpStatus.CREATED);
     }
 
-    // private output formatting methods\
-    //        return gameRepository.findAll().stream().map(game -> createGameMap(game)).collect(toList());
+    @RequestMapping(path = "/standings", method = RequestMethod.GET)
+    public List<Map<String, Object>> getLeaderBoard() {
+        return createStandingsMap(playerRepository.findAll());
+    }
+
+
+    // private output formatting methods\ ------------------------------------------------------------
     private Map<String, Object> createGameListMap(Player player, Boolean isAdmin) {
         Map<String, Object> gameListMap = new HashMap<>();
         gameListMap.put(
@@ -89,7 +141,7 @@ public class SalvoController {
         gameListMap.put("active_games",
                 gameRepository.findAll()
                         .stream()
-                        .filter(game -> game.getScores().size()==0)
+                        .filter(game -> game.getScores().size() == 0)
                         .map(game -> createGameMap(game))
                         .collect(Collectors.toList())
         );
@@ -104,14 +156,14 @@ public class SalvoController {
                                 ?
                                 gameRepository.findAll()
                                         .stream()
-                                        .filter(game -> game.getScores().size()!=0)
+                                        .filter(game -> game.getScores().size() != 0)
                                         .map(game -> createGameMap(game))
                                         .collect(Collectors.toList())
                                 :
                                 player.getGamePlayers()
                                         .stream()
                                         .map(game -> game.getGame())
-                                        .filter(game -> game.getScores().size()!=0)
+                                        .filter(game -> game.getScores().size() != 0)
                                         .map(game -> createGameMap(game))
                                         .collect(Collectors.toList())
         );
@@ -233,6 +285,25 @@ public class SalvoController {
             standings.add(playerMap);
         }
         return standings;
+    }
+
+    // helper functions ----------------------------------------------------------
+    private Boolean isAuthAdmin(Authentication authentication) {
+        return authentication == null ? false : authentication.getAuthorities().contains(new SimpleGrantedAuthority("ADMIN"));
+    }
+
+    private Boolean isAuthUser(Authentication authentication) {
+        return authentication == null ? false : authentication.getAuthorities().contains(new SimpleGrantedAuthority("USER"));
+    }
+
+    private Player getAuthPlayer(Authentication authentication) {
+
+        //TODO attach player to session to save db access
+        if (authentication == null) {
+            return null;
+        }
+            List<Player> players = playerRepository.findByUserName(authentication.getName());
+        return players.size() > 0 ? players.get(0) : null;
     }
 
 }
