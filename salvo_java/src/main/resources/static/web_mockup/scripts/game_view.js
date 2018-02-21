@@ -84,8 +84,36 @@ function getGamePlayer(id) {
   })
 }
 
+
+// dev 
+function devPost(id) {
+  console.log('posting')
+  $.postJSON = function (url, data, callback) {
+    return jQuery.ajax({
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      'type': 'POST',
+      'url': url,
+      'data': data,
+      'dataType': 'json',
+      'success': callback,
+      'error': callback
+    });
+  };
+  const ships = JSON.parse('[{\"locations\":[\"G10\",\"H10\",\"I10\"],\"shipType\":\"cruiser\"},{\"locations\":[\"E5\",\"F5\",\"G5\",\"H5\",\"I5\"],\"shipType\":\"carrier\"},{\"locations\":[\"J6\",\"J7\"],\"shipType\":\"destroyer\"},{\"locations\":[\"J2\",\"J3\",\"J4\"],\"shipType\":\"submarine\"},{\"locations\":[\"B1\",\"C1\",\"D1\",\"E1\"],\"shipType\":\"battleship\"}]')
+
+  $.postJSON(`../api/games/players/${id}/ships`, JSON.stringify(ships,true,2), r => console.log(r))
+
+}
+
+
+
 $(() => {
-  id = window.location.search.match(/id=([0-9]+)/) || null
+  const id = window.location.search.match(/id=([0-9]+)/) || null
   if (id) getGamePlayer(id[1])
+
+  // dev
+  $('#postbtn').on('click', _=> devPost(id[1]))
 
 })

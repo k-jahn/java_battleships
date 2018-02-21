@@ -14,6 +14,8 @@ import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
 
+
+
 @RequestMapping("/api")
 @RestController
 public class SalvoController {
@@ -53,7 +55,7 @@ public class SalvoController {
         game.setCreationDate(new Date());
         game.addGamePlayer(gamePlayer);
 
-        //save to tb
+        //save to db
         playerRepository.save(player);
         gameRepository.save(game);
         gamePlayerRepository.save(gamePlayer);
@@ -68,10 +70,10 @@ public class SalvoController {
             return new ResponseEntity<Object>("{\"error\": \"must be logged in to join game\"}", HttpStatus.UNAUTHORIZED);
         }
         Game game = gameRepository.findById(gameId);
-        if (game==null) {
+        if (game == null) {
             return new ResponseEntity<Object>("{\"error\": \"so such game found\"}", HttpStatus.FORBIDDEN);
         }
-        if (game.getScores().size()>0) {
+        if (game.getScores().size() > 0) {
             return new ResponseEntity<Object>("{\"error\": \"game is finished\"}", HttpStatus.FORBIDDEN);
         }
         if (new HashSet<>(game.getGamePlayers()).size() > 1) {
@@ -81,6 +83,7 @@ public class SalvoController {
         GamePlayer gamePlayer = new GamePlayer();
         game.addGamePlayer(gamePlayer);
         player.addGamePlayer(gamePlayer);
+
         gameRepository.save(game);
         playerRepository.save(player);
         gamePlayerRepository.save(gamePlayer);
@@ -88,10 +91,47 @@ public class SalvoController {
         return new ResponseEntity<Object>(createGamePlayerMap(gamePlayer), HttpStatus.CREATED);
     }
 
+    @RequestMapping(path = "/games/players/{gamePlayerId}/ships", method = RequestMethod.GET)
+    public ResponseEntity<Object> getShipList(@PathVariable long gamePlayerId, Authentication authentication) {
+        GamePlayer gamePlayer = gamePlayerRepository.findGamePlayerById(gamePlayerId);
+        if (!(getAuthPlayer(authentication) == gamePlayer.getPlayer() || isAuthAdmin(authentication))) {
+            return new ResponseEntity<Object>("{\"error\": \"not authorized to access\"}", HttpStatus.UNAUTHORIZED);
+        }
+        return new ResponseEntity<Object>(
+                gamePlayer.getShips()
+                        .stream()
+                        .map(ship -> createShipMap(ship))
+                        .collect(Collectors.toList()),
+                HttpStatus.OK
+        );
+    }
+
+    @RequestMapping(path = "/games/players/{gamePlayerId}/ships", method = RequestMethod.POST)
+    public ResponseEntity postShips(
+            @PathVariable long gamePlayerId,
+            Authentication authentication,
+            @RequestBody List<Ship> ships
+
+    ) {
+        GamePlayer gamePlayer = gamePlayerRepository.findGamePlayerById(gamePlayerId);
+        if (!(getAuthPlayer(authentication) == gamePlayer.getPlayer() || isAuthAdmin(authentication))) {
+            return new ResponseEntity<Object>("{\"error\": \"not authorized to access\"}", HttpStatus.UNAUTHORIZED);
+        }
+        if (!isValidShipList(ships)) {
+            return new ResponseEntity<Object>("{\"error\": \"bad ship data\"}", HttpStatus.CONFLICT);
+        }
+        gamePlayer.setShips(ships);
+        gamePlayerRepository.save(gamePlayer);
+        return new ResponseEntity<>(HttpStatus.CREATED);
+
+    }
 
     @RequestMapping(path = "/game_view/{gamePlayerId}", method = RequestMethod.GET)
     public ResponseEntity<Object> getGameView(@PathVariable Long gamePlayerId, Authentication authentication) {
         GamePlayer gamePlayer = gamePlayerRepository.findGamePlayerById(gamePlayerId);
+        if (gamePlayer == null) {
+            return new ResponseEntity<Object>("{\"error\": \"requested game_view not found\"}", HttpStatus.UNAUTHORIZED);
+        }
         if (getAuthPlayer(authentication) == gamePlayer.getPlayer() || isAuthAdmin(authentication)) {
             return new ResponseEntity<Object>(createGameViewMap(gamePlayer), HttpStatus.OK);
         } else {
@@ -100,12 +140,10 @@ public class SalvoController {
     }
 
     @RequestMapping(path = "/players", method = RequestMethod.POST)
-    public ResponseEntity<Map<String, Object>> createPlayer(@RequestParam String username, @RequestParam String password) {
+    public ResponseEntity<Object> createPlayer(@RequestParam String username, @RequestParam String password) {
         // check if username is valid email address
-        if (!Pattern.matches("^[A-Za-z0-9.\\-_]+@[A-Za-z0-9.\\-_]+\\.[A-Za-z]{2,}$", username)) {
-            Map<String, Object> errorMap = new HashMap<>();
-            errorMap.put("error", "bad email");
-            return new ResponseEntity<>(errorMap, HttpStatus.FORBIDDEN);
+        if (!isValidUserName(username)) {
+            return new ResponseEntity<>("{\"error\": \"not a valid email address\"}", HttpStatus.FORBIDDEN);
         }
         // check if username is already in use
         List<Player> playersWithName = playerRepository.findByUserName(username);
@@ -115,10 +153,8 @@ public class SalvoController {
             return new ResponseEntity<>(errorMap, HttpStatus.FORBIDDEN);
         }
         // check if password is valid
-        if (!Pattern.matches("^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d).{6,}$", password)) {
-            Map<String, Object> errorMap = new HashMap<>();
-            errorMap.put("error", "bad password");
-            return new ResponseEntity<>(errorMap, HttpStatus.FORBIDDEN);
+        if (!isValidPassword(password)) {
+            return new ResponseEntity<>("{\"error\": \"bad password\"}", HttpStatus.FORBIDDEN);
         }
         Player player = playerRepository.save(new Player(username, password));
 
@@ -250,7 +286,7 @@ public class SalvoController {
 
     private Map<String, Object> createShipMap(Ship ship) {
         Map<String, Object> shipMap = new HashMap<>();
-        shipMap.put("type", ship.getShipType());
+        shipMap.put("ship_type", ship.getShipType());
         shipMap.put("locations", ship.getLocations());
         return shipMap;
     }
@@ -287,6 +323,104 @@ public class SalvoController {
         return standings;
     }
 
+    // validation ---------------------------------------------------------------
+    private Boolean isValidShipList(List<Ship> shipList) {
+        // check if body passed parser
+        if (shipList == null) {
+            return false;
+        }
+
+        // get gameRules, make new ShipPop Map
+        GameRules gameRules = new GameRules();
+        Map<ShipType, Integer> shipPop = new HashMap<>();
+        for (ShipType type : ShipType.values()) {
+            shipPop.put(type, 0);
+        }
+
+        List<String> takenLocs = new ArrayList<>();
+
+        for (Ship ship : shipList) {
+
+            //increment shipPop
+            shipPop.merge(ship.getShipType(), 1, Integer::sum);
+
+            //check if correct length
+            List<String> locs = ship.getLocations();
+            if (locs.size() != gameRules.getShipLength().get(ship.getShipType())) {
+                return false;
+            }
+
+            //check for overlap
+            List<String> overlapLocs = new ArrayList<>(takenLocs);
+            overlapLocs.retainAll(ship.getLocations());
+            if (overlapLocs.size() > 0) {
+                return false;
+            }
+            takenLocs.addAll(ship.getLocations());
+
+            //extract rows and cols
+            List<Integer> cols;
+            List<Integer> rows;
+            try {
+                rows = locs.stream()
+                        .map(loc -> Integer.valueOf(loc.substring(1)))
+                        .collect(Collectors.toList());
+            } catch (NumberFormatException e) {
+                return false;
+            }
+            try {
+                cols = locs.stream()
+                        .map(loc -> loc.codePointAt(0) - 64)
+                        .collect(Collectors.toList());
+            } catch (IndexOutOfBoundsException e) {
+                return false;
+            }
+
+            // check if ships are well-formed TODO? make DRY
+            if (cols.stream().distinct().limit(2).count() == 1
+                    &&
+                    cols.get(0) >= 1
+                    &&
+                    cols.get(0) <= gameRules.getBoardHeight()) {
+                for (int i = 0; i < rows.size(); i++) {
+                    if (rows.get(0) < 1 || rows.get(0) + rows.size() - 1 > gameRules.getBoardWidth())
+                        if (rows.get(i) != i + rows.get(0)) return false;
+                }
+            } else if (rows.stream().distinct().limit(2).count() == 1
+                    &&
+                    rows.get(0) >= 1
+                    &&
+                    rows.get(0) <= gameRules.getBoardWidth()) {
+                for (int i = 0; i < cols.size(); i++) {
+                    if (cols.get(0) < 1 || cols.get(0) + cols.size() - 1 > gameRules.getBoardHeight())
+                        return false;
+                    if (cols.get(i) != i + cols.get(0))
+                        return false;
+                }
+            } else {
+                return false;
+            }
+        }
+
+        // check if shipPop matches
+        for (Map.Entry entry : gameRules.getShipPop().entrySet()) {
+            if (shipPop.get(entry.getKey()) != entry.getValue()) {
+                return false;
+            }
+        }
+
+        // if all conditions pass
+        return true;
+    }
+
+    private boolean isValidUserName(String username) {
+        return Pattern.matches("^[A-Za-z0-9.\\-_]+@[A-Za-z0-9.\\-_]+\\.[A-Za-z]{2,}$", username);
+    }
+
+    private boolean isValidPassword(String password) {
+        return Pattern.matches("^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d).{6,}$", password);
+    }
+
     // helper functions ----------------------------------------------------------
     private Boolean isAuthAdmin(Authentication authentication) {
         return authentication == null ? false : authentication.getAuthorities().contains(new SimpleGrantedAuthority("ADMIN"));
@@ -302,7 +436,7 @@ public class SalvoController {
         if (authentication == null) {
             return null;
         }
-            List<Player> players = playerRepository.findByUserName(authentication.getName());
+        List<Player> players = playerRepository.findByUserName(authentication.getName());
         return players.size() > 0 ? players.get(0) : null;
     }
 

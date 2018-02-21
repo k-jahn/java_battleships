@@ -19,8 +19,8 @@
 <body>
   <nav>
     <div>
-      <button class="js-nav-link" data-page="game-list">game list</button>
-      <button class="js-nav-link" data-page="leaderboard">leaderboard</button>
+      <button class="js-nav-link btn" data-page="game-list">game list</button>
+      <button class="js-nav-link btn" data-page="leaderboard">leaderboard</button>
     </div>
 
 
@@ -32,8 +32,8 @@
         Username
         <input name="loginUsername" type="text"> Password
         <input name="loginPassword" type="password">
-        <button id="button-login">Log In</button> ||
-        <button class="js-nav-link" data-page="signup">Sign Up</button>
+        <button class="btn" id="button-login">Log In</button> ||
+        <button class="js-nav-link btn" data-page="signup">Sign Up</button>
       </div>
       <span class="error-display"></span>
     </form>
@@ -42,7 +42,7 @@
       <strong>Logged in as
         <span class="user-name"></span>
       </strong>
-      <button id="button-logout">Log Out</button>
+      <button class="btn" id="button-logout">Log Out</button>
     </form>
   </nav>
 
@@ -51,8 +51,8 @@
 
   <!-- game list -->
   <main class="modal active" id="game-list">
-    <h1></h1>
-      <button id="button-create-game">Create New Game</button>
+    <h1>Game List</h1>
+      <button class="btn" id="button-create-game">Create New Game</button>
     <h2>Current Games</h2>
       <ol id="active-games"></ol>
     <h2 id="player-games-title"></h2>

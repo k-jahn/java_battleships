@@ -55,4 +55,6 @@ public class Ship {
     @ElementCollection
     @Column(name="locations")
     private List<String> locations = new ArrayList<>();
+
+    public Ship() {}
 }

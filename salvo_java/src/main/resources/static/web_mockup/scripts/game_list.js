@@ -16,7 +16,7 @@ function drawList(gameList, playerId, htmlId) {
       })
       if (playerId && game.gamePlayers.length == 1 && !game.gamePlayers.some(x => x.player.id == playerId)) {
         li.append(
-          $('<button>', { html: 'Join'})
+          $('<button>', { html: 'Join', class: 'btn'})
             .data({ game_id: game.id })
             .on('click', function () {
               joinGame($(this).data().game_id)
