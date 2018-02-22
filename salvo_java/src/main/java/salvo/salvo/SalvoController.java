@@ -30,6 +30,8 @@ public class SalvoController {
     @Autowired
     private PlayerRepository playerRepository;
 
+    @Autowired
+    private ShipRepository shipRepository;
 
     // map requests --------------------------------------------------------------
     @RequestMapping(path = "/games", method = RequestMethod.GET)
@@ -107,21 +109,26 @@ public class SalvoController {
     }
 
     @RequestMapping(path = "/games/players/{gamePlayerId}/ships", method = RequestMethod.POST)
-    public ResponseEntity postShips(
+    public ResponseEntity<Object> postShips(
             @PathVariable long gamePlayerId,
             Authentication authentication,
             @RequestBody List<Ship> ships
 
     ) {
         GamePlayer gamePlayer = gamePlayerRepository.findGamePlayerById(gamePlayerId);
-        if (!(getAuthPlayer(authentication) == gamePlayer.getPlayer() || isAuthAdmin(authentication))) {
+        if (!(getAuthPlayer(authentication) == gamePlayer.getPlayer() || isAuthAdmin(authentication)))
             return new ResponseEntity<Object>("{\"error\": \"not authorized to access\"}", HttpStatus.UNAUTHORIZED);
-        }
-        if (!isValidShipList(ships)) {
+
+        if (gamePlayer.getShips().size() > 0)
+            return new ResponseEntity<Object>("{\"error\": \"ship data already present\"}", HttpStatus.FORBIDDEN);
+
+
+        if (!isValidShipList(ships))
             return new ResponseEntity<Object>("{\"error\": \"bad ship data\"}", HttpStatus.CONFLICT);
-        }
-        gamePlayer.setShips(ships);
+
+        ships.forEach(ship -> gamePlayer.addShip(ship));
         gamePlayerRepository.save(gamePlayer);
+        shipRepository.save(ships);
         return new ResponseEntity<>(HttpStatus.CREATED);
 
     }
