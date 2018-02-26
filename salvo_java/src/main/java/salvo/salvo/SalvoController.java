@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 import static java.util.stream.Collectors.toList;
 
 
-
+@CrossOrigin
 @RequestMapping("/api")
 @RestController
 public class SalvoController {
@@ -168,7 +168,7 @@ public class SalvoController {
         return new ResponseEntity<>(createPlayerMap(player), HttpStatus.CREATED);
     }
 
-    @RequestMapping(path = "/standings", method = RequestMethod.GET)
+    @RequestMapping(path = "/leaderboard", method = RequestMethod.GET)
     public List<Map<String, Object>> getLeaderBoard() {
         return createStandingsMap(playerRepository.findAll());
     }
@@ -448,3 +448,4 @@ public class SalvoController {
     }
 
 }
+

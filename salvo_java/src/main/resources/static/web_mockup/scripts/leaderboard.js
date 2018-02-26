@@ -20,7 +20,7 @@ function drawStandingsTable(players) {
 $(_ => {
 
 
-  $.getJSON('../api/standings', (response) => {
+  $.getJSON('../api/leaderboard', (response) => {
     console.log(response)
     drawStandingsTable(response)
   })

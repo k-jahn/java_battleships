@@ -16,11 +16,10 @@ class Header extends React.Component {
     } else {
       return (
         <div className="salvo-navbar-links">
-        <span>
-          <MaterialIcon icon="person" color="inherit"/>
-          {userName}
-
-        </span>
+          <span>
+            <MaterialIcon icon="person" color="inherit" />
+            {userName}
+          </span>
           <Link to="/">Log Out</Link>
         </div>
       )

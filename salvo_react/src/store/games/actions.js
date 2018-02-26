@@ -1,4 +1,4 @@
-import gamesService from "../../service/games";
+import apiService from "../../service/api";
 import * as types from "./actionTypes";
 
 
@@ -10,8 +10,7 @@ export function fetchActiveGames() {
     try {
       // const activeGames = gameData.active_games
       // const gamesService = new GamesService();
-      console.log(gamesService)
-      const activeGames = gamesService.getActiveGamesFromServer();
+      const activeGames = apiService.getActiveGamesFromServer();
       dispatch({ type: types.GAMES_FETCHED, activeGames: activeGames });
     } catch (error) {
       console.error(error);
