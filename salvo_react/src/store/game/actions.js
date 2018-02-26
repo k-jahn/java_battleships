@@ -5,11 +5,11 @@ import * as types from "./actionTypes";
 
 
 
-export function fetchGames() {
+export function fetchGameView(id) {
   return async (dispatch, getState) => {
     try {
-      const games = await apiService.getGames();
-      dispatch({ type: types.GAMES_FETCHED, games: games });
+      const gameView = await apiService.getGameView(id);
+      dispatch({ type: types.GAME_VIEW_FETCHED, gameView: gameView });
     } catch (error) {
       console.error(error);
     }
