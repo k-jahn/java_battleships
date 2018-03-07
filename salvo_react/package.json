@@ -12,8 +12,10 @@
     "redux": "^3.7.2",
     "redux-thunk": "^2.2.0"
   },
+  "homepage": "localhost:8080/web_react",
   "scripts": {
     "start": "react-scripts start",
+    "dep": "react-scripts build && rm -rf ../salvo_java/src/main/resources/static/web_react/ && mkdir ../salvo_java/src/main/resources/static/web_react/ && cp -r build/* ../salvo_java/src/main/resources/static/web_react/",
     "build": "react-scripts build",
     "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject"

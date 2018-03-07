@@ -13,6 +13,7 @@
 .salvo-navbar a {
   color: #ccc;
   text-decoration: none;
+  cursor: pointer;
 }
 .salvo-navbar a:hover {
   color: #fff;

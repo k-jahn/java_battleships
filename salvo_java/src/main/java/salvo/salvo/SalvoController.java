@@ -141,9 +141,13 @@ public class SalvoController {
         }
         if (getAuthPlayer(authentication) == gamePlayer.getPlayer() || isAuthAdmin(authentication)) {
             return new ResponseEntity<Object>(createGameViewMap(gamePlayer), HttpStatus.OK);
-        } else {
-            return new ResponseEntity<Object>("{\"error\": \"not authorized to access game_view\"}", HttpStatus.UNAUTHORIZED);
         }
+        return new ResponseEntity<Object>("{\"error\": \"not authorized to access game_view\"}", HttpStatus.UNAUTHORIZED);
+    }
+
+    @RequestMapping(path = "/leaderboard", method = RequestMethod.GET)
+    public List<Map<String, Object>> getLeaderBoard() {
+        return createStandingsMap(playerRepository.findAll());
     }
 
     @RequestMapping(path = "/players", method = RequestMethod.POST)
@@ -168,9 +172,11 @@ public class SalvoController {
         return new ResponseEntity<>(createPlayerMap(player), HttpStatus.CREATED);
     }
 
-    @RequestMapping(path = "/leaderboard", method = RequestMethod.GET)
-    public List<Map<String, Object>> getLeaderBoard() {
-        return createStandingsMap(playerRepository.findAll());
+    @RequestMapping(path = "/user", method = RequestMethod.GET)
+    public Map<String, Object> getLoggedinUser(Authentication authentication) {
+        Map<String, Object> userMap = new HashMap<>();
+        userMap.put("user", authentication == null ? null : getAuthPlayer(authentication).getUserName());
+        return userMap;
     }
 
 

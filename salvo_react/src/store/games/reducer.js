@@ -1,23 +1,29 @@
 import * as types from "./actionTypes";
 
-
 const initialState = {
-  games: []
+  activeGames: [],
+  pastGames: [],
 };
 
 export default function reduce(state = initialState, action = {}) {
   switch (action.type) {
     case types.GAMES_FETCHED:
-      return {...state, games: action.games}
+      console.log(action)
+      return {...state,
+        activeGames: action.games.active_games,
+        pastGames: action.games.past_games,
+      }
     default:
       return state;
   }
 }
 
 // selectors =============================================================
-
-
 export function getActiveGames(state) {
-  console.log(state)
-  return state.games.games.active_games;
+  return state.games.activeGames;
+}
+
+export function getPastGames(state) {
+  console.log(state.games)
+  return state.games.pastGames;
 }
