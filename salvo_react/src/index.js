@@ -14,7 +14,7 @@ const store = createStore(combineReducers(reducers), applyMiddleware(thunk));
 
 ReactDOM.render((
   <Provider store={store}>
-    <BrowserRouter basename="/web_react">
+    <BrowserRouter>
       <SalvoApp />
     </BrowserRouter>
   </Provider>

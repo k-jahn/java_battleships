@@ -10,16 +10,52 @@
   box-shadow: 0 2px 2px rgba(0, 0, 0, 0.6);
 }
 
+.salvo-navbar-links span{
+  padding-left: 1.5em;
+  position: relative;
+}
+
+.salvo-navbar i.material-icons {
+  position: absolute;
+  left:0;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
 .salvo-navbar a {
   color: #ccc;
   text-decoration: none;
   cursor: pointer;
 }
-.salvo-navbar a:hover {
+.salvo-navbar a:hover, a.active  {
   color: #fff;
 }
 
 
 .salvo-navbar-links > * {
   margin: 0 0.5em;
+}
+
+.modalCover {
+  position: absolute;
+  top: 50px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.2)
+}
+
+.modalWrapper {
+  position: absolute;
+  top: 0;
+  right: 0;
+  /* height:300px; */
+  width: 220px;
+  background-color: white;
+  border: 1px solid black; 
+  border-top: 0;
+  box-shadow: 0 2px 2px rgba(0, 0, 0, 0.6);
+  color: black;
+  padding: 0 1em 1em 1em;
+  font-size: 16px;
 }

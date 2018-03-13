@@ -16,16 +16,3 @@ export function fetchGames() {
   };
 }
 
-
-export function postLogin(username,password) {
-  return async (dispatch, getState) => {
-    console.log(password)
-    try {
-      const response = await apiService.postLogin(username,password);
-      console.log(response)
-      fetchGames();
-    } catch (error) {
-      console.error(error);
-    }
-  };
-}

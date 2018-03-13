@@ -1,4 +1,3 @@
-// import axios from 'axios';
 
 const apiUrl = "http://localhost:8080/api"
 
@@ -50,10 +49,47 @@ class ApiService {
     return await response.json();
   }
 
+  async postJoinGame(id) {
+    const url = `${apiUrl}/game/${id}/players`
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        Accept: '*/*',
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      mode: 'cors',
+      credentials: 'include',
+    })
+    if (response.ok) {
+      return true
+    } else {
+      return false
+    }
+  }
+  async postCreateGame() {
+    const url = `${apiUrl}/games/`
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        Accept: '*/*',
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      mode: 'cors',
+      credentials: 'include',
+    })
+    if (response.ok) {
+      return true
+    } else {
+      return false
+    }
+  }
+
+
   async postLogin(username, password) {
     const loginUrl = `${apiUrl}/login`
     const userUrl = `${apiUrl}/user`
     const postData = `username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`
+
     const response = await fetch(loginUrl, {
       method: 'POST',
       headers: {
@@ -64,6 +100,7 @@ class ApiService {
       credentials: 'include',
       body: postData
     })
+
     if (await response.ok) {
       const user = await fetch(userUrl, {
         method: 'GET',
@@ -96,6 +133,26 @@ class ApiService {
     }
   }
   
+  async postSignup(username, password) {
+    const signupUrl = `${apiUrl}/players`
+    const postData = `username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`
+    const response = await fetch(signupUrl, {
+      method: 'POST',
+      headers: {
+        Accept: '*/*',
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      mode: 'cors',
+      credentials: 'include',
+      body: postData
+    })
+    if (await response.ok) {
+      return this.postLogin(username,password)
+    } else {
+      return false
+    }
+  }
+
 }
 
 export default new ApiService();

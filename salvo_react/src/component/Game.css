@@ -1,0 +1,80 @@
+.game_view .board_row {
+  display: flex
+}
+.game_view .board_cell {
+  height: 40px;
+  width: 40px;
+  border: 1px solid black;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 20px;
+  box-sizing: border-box;
+}
+
+/* borders */
+.game_view .board_cell.field:nth-child(2) {
+  border-left: 2px solid black;
+}
+.game_view .board_cell.field:last-child {
+  border-right: 2px solid black;
+}
+.game_view .board_row:nth-child(2) .board_cell.field {
+  border-top: 2px solid black;
+}
+.game_view .board_row:last-child .board_cell.field {
+  border-bottom: 2px solid black;
+}
+
+.game_view .board_cell.field {
+  background-color: rgba(0, 0, 100, 0.07);
+}
+.game_view .board_cell.legend {
+  background-color: rgba(0, 100, 0, 0.07);
+  border: 0;
+}
+.game_view .board_container {
+  display: inline-block;
+  position: relative;
+  /* border: 1px solid black; */
+  box-shadow: 2px 2px 2px rgba(0, 0, 0, 0.6)
+}
+
+.game_view .board_container  {
+  display: inline-block;
+  position: relative;
+  /* border: 1px solid black; */
+  box-shadow: 2px 2px 2px rgba(0, 0, 0, 0.6)
+}
+
+.game_view .board_cell.field.ship {
+  background-color: rgba(0, 0, 100, 0.2);
+}
+
+.game_view .board_container .ship_overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  background-color: blue;
+  border-radius: 5px;
+}
+
+.game_view i {
+  z-index: 20;
+}
+
+
+
+
+
+.game_view .game_wrapper {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+}
+@media screen and (max-width: 1024px) {
+  .game_view .game_wrapper {
+    flex-direction: column;
+  }
+}

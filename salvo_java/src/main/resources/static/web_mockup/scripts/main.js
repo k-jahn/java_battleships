@@ -1,3 +1,4 @@
+
 const emailRegEx = /^[A-Za-z0-9.\-_]+@[A-Za-z0-9.\-_]+\.[A-Za-z]{2,}$/
 const pwLengthRegEx = /^.{6,}$/
 const pwLetterRegEx = /^(?=.*[a-z])(?=.*[A-Z])/

@@ -5,6 +5,8 @@
   "dependencies": {
     "axios": "^0.18.0",
     "react": "^16.2.0",
+    "react-dnd": "^2.5.4",
+    "react-dnd-html5-backend": "^2.5.4",
     "react-dom": "^16.2.0",
     "react-redux": "^5.0.7",
     "react-router-dom": "^4.2.2",
@@ -12,7 +14,6 @@
     "redux": "^3.7.2",
     "redux-thunk": "^2.2.0"
   },
-  "homepage": "localhost:8080/web_react",
   "scripts": {
     "start": "react-scripts start",
     "dep": "react-scripts build && rm -rf ../salvo_java/src/main/resources/static/web_react/ && mkdir ../salvo_java/src/main/resources/static/web_react/ && cp -r build/* ../salvo_java/src/main/resources/static/web_react/",

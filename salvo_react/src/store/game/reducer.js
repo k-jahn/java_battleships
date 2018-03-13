@@ -7,10 +7,12 @@ const initialState = {
 
 export default function reduce(state = initialState, action = {}) {
   switch (action.type) {
-    case types.GAME_VIEW_FETCHED:
-      const game = {...state.game}
-      game[action.gameView.id] = action.gameView
-      return { ...state, game: game } 
+    case types.GAME_FETCHED:
+      let nextState = {...state}
+      nextState.game[action.gameView.player.id] = action.gameView
+      return nextState; 
+    case types.GAME_CLEAR:
+      return {...state, game: {}}
     default:
       return state;
   }
@@ -19,7 +21,7 @@ export default function reduce(state = initialState, action = {}) {
 // selectors =============================================================
 
 
-export function getGameView(state) {
-  console.log(state)
-  return state;
+export function getGameView(state,id) {
+  const game = state.game.game[id];
+  return game
 }
